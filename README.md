@@ -1,36 +1,198 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Business API Documentation
 
-## Getting Started
+## Overview
 
-First, run the development server:
+This API allows managing business records, including retrieving, creating, updating, and deleting businesses. Additionally, it provides OTP-based email verification.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Base URL
+
+```
+http://localhost:3000/api
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Endpoints
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Get Businesses
 
-## Learn More
+#### **GET /business**
 
-To learn more about Next.js, take a look at the following resources:
+Retrieve a paginated list of businesses based on optional filters.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+#### **Query Parameters:**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Parameter     | Type   | Required | Description                            |
+| ------------- | ------ | -------- | -------------------------------------- |
+| category      | string | No       | Filter by business category            |
+| status        | string | No       | Filter by business status              |
+| business_name | string | No       | Search by business name                |
+| page          | number | No       | Page number (default: 1)               |
+| limit         | number | No       | Number of items per page (default: 10) |
 
-## Deploy on Vercel
+#### **Response:**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Business Name",
+      "category": "Retail",
+      "status": "Active"
+    }
+  ],
+  "pagination": {
+    "total": 100,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 10
+  }
+}
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+### 2. Update Business Status
+
+#### **PATCH /business**
+
+Update the status of a business.
+
+#### **Request Body:**
+
+```json
+{
+  "id": 1,
+  "status": "Inactive"
+}
+```
+
+#### **Response:**
+
+```json
+{ "message": "Status updated successfully" }
+```
+
+---
+
+### 3. Create a Business
+
+#### **POST /business**
+
+Create a new business record.
+
+#### **Request Body:**
+
+```json
+{
+  "name": "New Business",
+  "category": "Retail",
+  "status": "Active",
+  "address": "123 Street",
+  "email_id": "example@email.com",
+  "latitude": 40.7128,
+  "longitude": -74.006
+}
+```
+
+#### **Response:**
+
+```json
+{ "message": "Business created successfully", "id": 123 }
+```
+
+---
+
+### 4. Delete a Business
+
+#### **DELETE /business**
+
+Delete a business by ID.
+
+#### **Request Body:**
+
+```json
+{
+  "id": 1
+}
+```
+
+#### **Response:**
+
+```json
+{ "message": "Business deleted successfully" }
+```
+
+---
+
+## Email Verification API
+
+### 5. Send OTP
+
+#### **POST /send-otp**
+
+Send an OTP to a user's email for verification.
+
+#### **Request Body:**
+
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+#### **Response:**
+
+```json
+{ "message": "OTP sent successfully" }
+```
+
+---
+
+### 6. Verify OTP
+
+#### **POST /verify-otp**
+
+Verify the OTP sent to the user's email.
+
+#### **Request Body:**
+
+```json
+{
+  "email": "user@example.com",
+  "otp": 1234
+}
+```
+
+#### **Response:**
+
+```json
+{ "verified": true, "message": "Email verified successfully" }
+```
+
+#### **Error Response:**
+
+```json
+{ "verified": false, "message": "Invalid or expired OTP" }
+```
+
+---
+
+## Error Handling
+
+| Status Code | Message                                       |
+| ----------- | --------------------------------------------- |
+| 400         | "Bad Request - Missing or Invalid Parameters" |
+| 404         | "Not Found - Business Not Found"              |
+| 500         | "Internal Server Error"                       |
+
+---
+
+## Notes
+
+- The OTP expires in **5 minutes**.
+- The `GET /business` endpoint supports pagination.
+- Business names can be searched using partial matching with `business_name`.
+
+This documentation serves as a guide for using the Business API efficiently.
