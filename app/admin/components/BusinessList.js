@@ -192,7 +192,7 @@ export default function BusinessList() {
                 onChange={handleFilter}
               />
             </div>
-            <div className='col-md-4'>
+            {/* <div className='col-md-4'>
               <select
                 className='form-select'
                 name='category'
@@ -205,7 +205,7 @@ export default function BusinessList() {
                 <option value='Service'>Service</option>
                 <option value='Technology'>Technology</option>
               </select>
-            </div>
+            </div> */}
             <div className='col-md-4'>
               <select
                 className='form-select'

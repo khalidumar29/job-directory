@@ -630,7 +630,7 @@ export default function CreateBusiness() {
               </div>
 
               {/* Image Upload */}
-              <div className='col-12'>
+              {/* <div className='col-12'>
                 <div className='card border bg-light'>
                   <div className='card-header bg-light py-3'>
                     <h6 className='mb-0 text-primary'>
@@ -689,10 +689,13 @@ export default function CreateBusiness() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> */}
               {/* Continue with other sections using the same pattern... */}
             </div>
-            <div className='d-flex justify-content-end gap-2'>
+            <div
+              style={{ marginTop: "20px" }}
+              className='d-flex justify-content-end gap-2'
+            >
               <button
                 type='button'
                 className='btn btn-secondary px-4'

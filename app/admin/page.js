@@ -7,7 +7,7 @@ import BusinessList from "./components/BusinessList";
 
 const AdminDashboard = () => {
   const router = useRouter();
-  const [showForm, setShowForm] = useState(true);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     const isAuth = sessionStorage.getItem("isAdminLoggedIn");
@@ -23,7 +23,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className='container-fluid py-5'>
+    <div style={{ marginTop: "60px" }} className='container-fluid py-5 '>
       {/* Header with modern design */}
       <div className='d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4'>
         <h1
@@ -48,7 +48,6 @@ const AdminDashboard = () => {
           Logout
         </button>
       </div>
-
       {/* Business Management section */}
       <div className='container-fluid py-4 px-0'>
         <h2
@@ -67,15 +66,26 @@ const AdminDashboard = () => {
           </div>
         </div>
       </div>
-
       {/* Create Business section */}
-      <div className='row'>
-        <div className='col-12 col-lg-6 mx-auto'>
-          <div className='card shadow-lg border-0 p-4'>
-            <CreateBusiness />
-          </div>
+      <div className='row mb-4'>
+        <div className='col-12 text-center'>
+          <button
+            className='btn btn-primary px-4 py-2'
+            onClick={() => setShowForm(!showForm)}
+          >
+            {showForm ? "Hide Create Business" : "Create New Business"}
+          </button>
         </div>
       </div>
+      {showForm && (
+        <div className='row'>
+          <div className='col-12 col-lg-6 mx-auto'>
+            <div className='card shadow-lg border-0 p-4'>
+              <CreateBusiness />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Optional: Mobile quick action button */}
       <div
