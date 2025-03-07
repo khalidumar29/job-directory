@@ -72,7 +72,7 @@ export async function PATCH(req) {
     }
 
     const [result] = await pool.query(
-      "UPDATE `business` SET status = ? WHERE id = ?",
+      "UPDATE `businesses` SET status = ? WHERE id = ?",
       [status, id]
     );
 
@@ -119,7 +119,7 @@ export async function POST(req) {
     }
 
     const [result] = await pool.query(
-      "INSERT INTO `business` (name, mobile_number, review_count, rating, category, address, website, email_id, plus_code, closing_hours, latitude, longitude, instagram_profile, facebook_profile, linkedin_profile, twitter_profile, images_folder, status, industry_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO `businesses` (name, mobile_number, review_count, rating, category, address, website, email_id, plus_code, closing_hours, latitude, longitude, instagram_profile, facebook_profile, linkedin_profile, twitter_profile, images_folder, status, industry_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         name,
         mobile_number,
@@ -155,24 +155,57 @@ export async function POST(req) {
 
 // Delete a business
 export async function DELETE(req) {
+  let connection;
   try {
     const { id } = await req.json();
 
     if (!id) {
-      return Response.json({ message: "ID is required" }, { status: 400 });
+      return Response.json(
+        {
+          success: false,
+          message: "ID is required",
+        },
+        { status: 400 }
+      );
     }
 
-    const [result] = await pool.query("DELETE FROM `business` WHERE id = ?", [
-      id,
-    ]);
+    // Changed 'business' to 'businesses'
+    connection = await pool.getConnection();
+    const [result] = await connection.query(
+      "DELETE FROM `businesses` WHERE id = ?",
+      [id]
+    );
 
     if (result.affectedRows === 0) {
-      return Response.json({ message: "Business not found" }, { status: 404 });
+      return Response.json(
+        {
+          success: false,
+          message: "Business not found",
+        },
+        { status: 404 }
+      );
     }
 
-    return Response.json({ message: "Business deleted successfully" });
+    return Response.json({
+      success: true,
+      message: "Business deleted successfully",
+    });
   } catch (error) {
-    console.error(error);
-    return Response.json({ message: "Internal Server Error" }, { status: 500 });
+    console.error("Delete error:", error);
+    return Response.json(
+      {
+        success: false,
+        message: error.message || "Internal Server Error",
+      },
+      { status: 500 }
+    );
+  } finally {
+    if (connection) {
+      try {
+        connection.release();
+      } catch (releaseError) {
+        console.error("Error releasing connection:", releaseError);
+      }
+    }
   }
 }

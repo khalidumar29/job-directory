@@ -10,15 +10,17 @@
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "bootstrap": "^5.3.3",
     "isotope-layout": "^3.0.6",
     "mysql2": "^3.13.0",
     "next": "^14.2.14",
     "nodemailer": "^6.10.0",
     "nouislider-react": "^3.4.2",
     "react": "^18.3.1",
-    "react-bootstrap": "^1.6.1",
+    "react-bootstrap": "^1.6.8",
     "react-countup": "^6.5.3",
     "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.5.2",
     "react-slick": "^0.30.3",
     "react-visibility-sensor": "^5.1.1",
     "wowjs": "^1.1.3"
