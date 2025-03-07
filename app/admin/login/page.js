@@ -20,7 +20,7 @@ const AdminLogin = () => {
     // In production, use proper authentication system
     if (
       credentials.username === "admin" &&
-      credentials.password === "admin123"
+      credentials.password === "@admin12345@"
     ) {
       sessionStorage.setItem("isAdminLoggedIn", "true");
       toast.success("Login successful!");
@@ -72,7 +72,7 @@ const AdminLogin = () => {
             </Button>
           </Form>
 
-          <div className='text-center mt-3 text-muted'>
+          {/* <div className='text-center mt-3 text-muted'>
             <small>
               Default credentials:
               <br />
@@ -80,7 +80,7 @@ const AdminLogin = () => {
               <br />
               Password: admin123
             </small>
-          </div>
+          </div> */}
         </Card.Body>
       </Card>
     </Container>

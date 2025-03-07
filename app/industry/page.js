@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import {
   Phone,
   MapPin,
@@ -221,9 +222,10 @@ const BusinessCard = ({ business }) => {
   );
 };
 
+// Main Page Component
 const Page = () => {
-  const params = useParams();
-  const industry_type = params.industry_type;
+  const searchParams = useSearchParams();
+  const industry_type = searchParams.get("industry_type");
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -240,17 +242,20 @@ const Page = () => {
       try {
         setLoading(true);
 
+        // Construct URL with all possible parameters
         const params = new URLSearchParams({
-          page: currentPage.toString(),
-          limit: "10",
+          page: currentPage,
+          limit: 10,
         });
 
-        // Only add industry_type if it's not "all"
-        if (industry_type && industry_type !== "all") {
+        // Only add industry_type if it exists
+        if (industry_type) {
           params.append("industry_type", industry_type);
         }
 
         const url = `/api/business?${params.toString()}`;
+        console.log("Fetching URL:", url); // Debug URL
+
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -258,6 +263,7 @@ const Page = () => {
         }
 
         const data = await response.json();
+        console.log("API Response:", data); // Debug response
 
         if (data.data) {
           setBusinesses(data.data);
@@ -291,22 +297,13 @@ const Page = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className='container-fluid py-5 text-center'>
-        <div className='alert alert-danger' role='alert'>
-          {error}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div
       style={{
         padding: "3rem 1rem",
         backgroundColor: "#f8f9fa",
         minHeight: "100vh",
+        marginTop: "70px",
       }}
     >
       <div
@@ -316,7 +313,6 @@ const Page = () => {
           margin: "0 auto",
           marginBottom: "3rem",
           padding: "0 1rem",
-          marginTop: "70px",
         }}
       >
         <div
