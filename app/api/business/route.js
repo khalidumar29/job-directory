@@ -3,7 +3,7 @@ import { pool } from "@/src/lib/db";
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
-    const category = searchParams.get("category");
+    const industry_type = searchParams.get("industry_type");
     const status = searchParams.get("status");
     const businessName = searchParams.get("business_name");
     const page = parseInt(searchParams.get("page")) || 1;
@@ -16,9 +16,9 @@ export async function GET(req) {
     if (businessName) {
       query += " WHERE name LIKE ?";
       values.push(`%${businessName}%`);
-    } else if (category) {
-      query += " WHERE category = ?";
-      values.push(category);
+    } else if (industry_type) {
+      query += " WHERE industry_type = ?";
+      values.push(industry_type);
     } else if (status) {
       query += " WHERE status = ?";
       values.push(status);
@@ -35,9 +35,9 @@ export async function GET(req) {
     if (businessName) {
       countQuery += " WHERE name LIKE ?";
       countValues.push(`%${businessName}%`);
-    } else if (category) {
-      countQuery += " WHERE category = ?";
-      countValues.push(category);
+    } else if (industry_type) {
+      countQuery += " WHERE industry_type = ?";
+      countValues.push(industry_type);
     } else if (status) {
       countQuery += " WHERE status = ?";
       countValues.push(status);
