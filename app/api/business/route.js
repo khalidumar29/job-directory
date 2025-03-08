@@ -10,17 +10,19 @@ export async function GET(req) {
     const limit = parseInt(searchParams.get("limit")) || 10;
     const offset = (page - 1) * limit;
 
-    let query = "SELECT * FROM `businesses`";
+    let query = "SELECT * FROM `businesses` WHERE 1";
     let values = [];
 
     if (businessName) {
-      query += " WHERE name LIKE ?";
+      query += " AND name LIKE ?";
       values.push(`%${businessName}%`);
-    } else if (industry_type) {
-      query += " WHERE industry_type = ?";
+    }
+    if (industry_type) {
+      query += " AND industry_type = ?";
       values.push(industry_type);
-    } else if (status) {
-      query += " WHERE status = ?";
+    }
+    if (status) {
+      query += " AND status = ?";
       values.push(status);
     }
 
@@ -29,21 +31,24 @@ export async function GET(req) {
 
     const [rows] = await pool.query(query, values);
 
-    // Get total count for pagination
-    let countQuery = "SELECT COUNT(*) AS total FROM `businesses`";
+    let countQuery = "SELECT COUNT(*) AS total FROM `businesses` WHERE 1";
     let countValues = [];
+
     if (businessName) {
-      countQuery += " WHERE name LIKE ?";
+      countQuery += " AND name LIKE ?";
       countValues.push(`%${businessName}%`);
-    } else if (industry_type) {
-      countQuery += " WHERE industry_type = ?";
+    }
+    if (industry_type) {
+      countQuery += " AND industry_type = ?";
       countValues.push(industry_type);
-    } else if (status) {
-      countQuery += " WHERE status = ?";
+    }
+    if (status) {
+      countQuery += " AND status = ?";
       countValues.push(status);
     }
 
     const [[{ total }]] = await pool.query(countQuery, countValues);
+    console.log(query);
 
     return Response.json({
       data: rows,
