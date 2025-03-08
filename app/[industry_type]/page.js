@@ -250,7 +250,7 @@ const Page = () => {
           params.append("industry_type", industry_type);
         }
 
-        const url = `/api/business?${params.toString()}`;
+        const url = `/api/business?status=active&${params.toString()}`;
         const response = await fetch(url);
 
         if (!response.ok) {
