@@ -1,198 +1,173 @@
-# Business API Documentation
+# Business Directory API Documentation
 
-## Overview
-
-This API allows managing business records, including retrieving, creating, updating, and deleting businesses. Additionally, it provides OTP-based email verification.
+This API allows users to **fetch, create, update, and delete** businesses in the system. It supports **pagination, filtering, and full admin control**.
 
 ## Base URL
 
 ```
-http://localhost:3000/api
+https://yourdomain.com/api/businesses
 ```
 
 ---
 
-## Endpoints
+## 1️⃣ GET: Fetch Businesses
 
-### 1. Get Businesses
+### Endpoint
 
-#### **GET /business**
+```http
+GET /api/businesses
+```
 
-Retrieve a paginated list of businesses based on optional filters.
+### Query Parameters
 
-#### **Query Parameters:**
+| Parameter       | Type     | Required | Description                                                              |
+| --------------- | -------- | -------- | ------------------------------------------------------------------------ |
+| `industry_type` | `string` | ❌       | Filter businesses by industry type                                       |
+| `status`        | `string` | ❌       | Filter by business status (e.g., `active`, `inactive`)                   |
+| `business_name` | `string` | ❌       | Search businesses by name (partial match)                                |
+| `location`      | `string` | ❌       | Filter businesses by location                                            |
+| `minPrice`      | `number` | ❌       | Filter businesses with minimum price greater than or equal to this value |
+| `maxPrice`      | `number` | ❌       | Filter businesses with maximum price less than or equal to this value    |
+| `page`          | `number` | ❌       | Page number for pagination (default: `1`)                                |
+| `limit`         | `number` | ❌       | Number of records per page (default: `10`)                               |
 
-| Parameter     | Type   | Required | Description                            |
-| ------------- | ------ | -------- | -------------------------------------- |
-| category      | string | No       | Filter by business category            |
-| status        | string | No       | Filter by business status              |
-| business_name | string | No       | Search by business name                |
-| page          | number | No       | Page number (default: 1)               |
-| limit         | number | No       | Number of items per page (default: 10) |
+### Example Request
 
-#### **Response:**
-
-```json
-{
-  "data": [
-    {
-      "id": 1,
-      "name": "Business Name",
-      "category": "Retail",
-      "status": "Active"
-    }
-  ],
-  "pagination": {
-    "total": 100,
-    "page": 1,
-    "limit": 10,
-    "totalPages": 10
-  }
-}
+```http
+GET /api/businesses?industry_type=IT&location=New%20York&minPrice=1000&maxPrice=10000&page=1&limit=5
 ```
 
 ---
 
-### 2. Update Business Status
+## 2️⃣ POST: Add New Business (All Fields Required)
 
-#### **PATCH /business**
+### Endpoint
 
-Update the status of a business.
+```http
+POST /api/businesses
+```
 
-#### **Request Body:**
+### Body Parameters (All Required)
+
+| Parameter           | Type              | Required | Description                             |
+| ------------------- | ----------------- | -------- | --------------------------------------- |
+| `name`              | `string`          | ✅       | Business name                           |
+| `mobile_number`     | `string`          | ✅       | Contact number                          |
+| `review_count`      | `number`          | ✅       | Number of reviews                       |
+| `rating`            | `number`          | ✅       | Business rating (1-5)                   |
+| `category`          | `string`          | ✅       | Business category                       |
+| `address`           | `string`          | ✅       | Physical address                        |
+| `website`           | `string`          | ✅       | Business website URL                    |
+| `email_id`          | `string`          | ✅       | Business email                          |
+| `plus_code`         | `string`          | ✅       | Google Maps plus code                   |
+| `closing_hours`     | `string`          | ✅       | Closing hours of the business           |
+| `latitude`          | `number`          | ✅       | Latitude coordinate                     |
+| `longitude`         | `number`          | ✅       | Longitude coordinate                    |
+| `instagram_profile` | `string`          | ✅       | Instagram profile link                  |
+| `facebook_profile`  | `string`          | ✅       | Facebook profile link                   |
+| `linkedin_profile`  | `string`          | ✅       | LinkedIn profile link                   |
+| `twitter_profile`   | `string`          | ✅       | Twitter profile link                    |
+| `thumbnail`         | `string (Base64)` | ✅       | Business image in **Base64 format**     |
+| `status`            | `string`          | ✅       | Business status (`active` / `inactive`) |
+| `industry_type`     | `string`          | ✅       | Industry type                           |
+| `minPrice`          | `number`          | ✅       | Minimum price for services/products     |
+| `maxPrice`          | `number`          | ✅       | Maximum price for services/products     |
+| `location`          | `string`          | ✅       | Business location                       |
+
+### Example Request
 
 ```json
 {
-  "id": 1,
-  "status": "Inactive"
-}
-```
-
-#### **Response:**
-
-```json
-{ "message": "Status updated successfully" }
-```
-
----
-
-### 3. Create a Business
-
-#### **POST /business**
-
-Create a new business record.
-
-#### **Request Body:**
-
-```json
-{
-  "name": "New Business",
-  "category": "Retail",
-  "status": "Active",
-  "address": "123 Street",
-  "email_id": "example@email.com",
+  "name": "Tech Solutions",
+  "mobile_number": "1234567890",
+  "review_count": 25,
+  "rating": 4.5,
+  "category": "IT",
+  "address": "123 Main Street, New York",
+  "website": "https://techsolutions.com",
+  "email_id": "info@techsolutions.com",
+  "plus_code": "7GQ7+89",
+  "closing_hours": "9 PM",
   "latitude": 40.7128,
-  "longitude": -74.006
+  "longitude": -74.006,
+  "instagram_profile": "https://instagram.com/techsolutions",
+  "facebook_profile": "https://facebook.com/techsolutions",
+  "linkedin_profile": "https://linkedin.com/company/techsolutions",
+  "twitter_profile": "https://twitter.com/techsolutions",
+  "thumbnail": "data:image/png;base64,iVBORw0KGgo...",
+  "status": "active",
+  "industry_type": "IT",
+  "minPrice": 1500,
+  "maxPrice": 10000,
+  "location": "New York"
 }
 ```
 
-#### **Response:**
+---
 
-```json
-{ "message": "Business created successfully", "id": 123 }
+## 3️⃣ PATCH: Update Business (Admin)
+
+### Endpoint
+
+```http
+PATCH /api/businesses
+```
+
+### Body Parameters (At least `id` and one field required)
+
+| Parameter     | Type     | Required | Description                                  |
+| ------------- | -------- | -------- | -------------------------------------------- |
+| `id`          | `number` | ✅       | Business ID to update                        |
+| `[Any field]` | `any`    | ❌       | Any field from `POST` request can be updated |
+
+---
+
+## 4️⃣ DELETE: Remove Business
+
+### Endpoint
+
+```http
+DELETE /api/businesses
+```
+
+### Body Parameters
+
+| Parameter | Type     | Required | Description           |
+| --------- | -------- | -------- | --------------------- |
+| `id`      | `number` | ✅       | Business ID to delete |
+
+---
+
+## 🔀 SQL Query to Randomize Prices
+
+```sql
+UPDATE businesses
+SET
+    minPrice = FLOOR(RAND() * 500000),
+    maxPrice = minPrice + FLOOR(RAND() * 500000)
+WHERE 1;
 ```
 
 ---
 
-### 4. Delete a Business
+## 🚀 Summary
 
-#### **DELETE /business**
-
-Delete a business by ID.
-
-#### **Request Body:**
-
-```json
-{
-  "id": 1
-}
-```
-
-#### **Response:**
-
-```json
-{ "message": "Business deleted successfully" }
-```
+| Method     | Endpoint          | Description                                  |
+| ---------- | ----------------- | -------------------------------------------- |
+| **GET**    | `/api/businesses` | Fetch businesses with filtering & pagination |
+| **POST**   | `/api/businesses` | Add a new business (**all fields required**) |
+| **PATCH**  | `/api/businesses` | Admin can update **any field**               |
+| **DELETE** | `/api/businesses` | Delete a business                            |
 
 ---
 
-## Email Verification API
+## 💡 Notes
 
-### 5. Send OTP
-
-#### **POST /send-otp**
-
-Send an OTP to a user's email for verification.
-
-#### **Request Body:**
-
-```json
-{
-  "email": "user@example.com"
-}
-```
-
-#### **Response:**
-
-```json
-{ "message": "OTP sent successfully" }
-```
+- **Base64 Storage**: The `thumbnail` field **stores images as Base64 strings**.
+- **Pagination**: Defaults to `10` records per page.
+- **Strict Validation**: **All fields are required** when creating a new business.
+- **Full Admin Control**: `PATCH` allows updating **any field**.
 
 ---
 
-### 6. Verify OTP
-
-#### **POST /verify-otp**
-
-Verify the OTP sent to the user's email.
-
-#### **Request Body:**
-
-```json
-{
-  "email": "user@example.com",
-  "otp": 1234
-}
-```
-
-#### **Response:**
-
-```json
-{ "verified": true, "message": "Email verified successfully" }
-```
-
-#### **Error Response:**
-
-```json
-{ "verified": false, "message": "Invalid or expired OTP" }
-```
-
----
-
-## Error Handling
-
-| Status Code | Message                                       |
-| ----------- | --------------------------------------------- |
-| 400         | "Bad Request - Missing or Invalid Parameters" |
-| 404         | "Not Found - Business Not Found"              |
-| 500         | "Internal Server Error"                       |
-
----
-
-## Notes
-
-- The OTP expires in **5 minutes**.
-- The `GET /business` endpoint supports pagination.
-- Business names can be searched using partial matching with `business_name`.
-
-This documentation serves as a guide for using the Business API efficiently.
+This documentation ensures **full validation** and follows **REST API best practices**. 🚀

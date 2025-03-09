@@ -1,11 +1,16 @@
 import { pool } from "@/src/lib/db";
 
+// GET: Query businesses based on filters
+
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const industry_type = searchParams.get("industry_type");
     const status = searchParams.get("status");
     const businessName = searchParams.get("business_name");
+    const location = searchParams.get("location");
+    const minPrice = parseFloat(searchParams.get("minPrice")) || 0;
+    const maxPrice = parseFloat(searchParams.get("maxPrice")) || 9999999;
     const page = parseInt(searchParams.get("page")) || 1;
     const limit = parseInt(searchParams.get("limit")) || 10;
     const offset = (page - 1) * limit;
@@ -25,6 +30,12 @@ export async function GET(req) {
       query += " AND status = ?";
       values.push(status);
     }
+    if (location) {
+      query += " AND location = ?";
+      values.push(location);
+    }
+    query += " AND minPrice >= ? AND maxPrice <= ?";
+    values.push(minPrice, maxPrice);
 
     query += " LIMIT ? OFFSET ?";
     values.push(limit, offset);
@@ -46,9 +57,14 @@ export async function GET(req) {
       countQuery += " AND status = ?";
       countValues.push(status);
     }
+    if (location) {
+      countQuery += " AND location = ?";
+      countValues.push(location);
+    }
+    countQuery += " AND minPrice >= ? AND maxPrice <= ?";
+    countValues.push(minPrice, maxPrice);
 
     const [[{ total }]] = await pool.query(countQuery, countValues);
-    console.log(query);
 
     return Response.json({
       data: rows,
@@ -65,33 +81,42 @@ export async function GET(req) {
   }
 }
 
+// PATCH: Admin can update any field
 export async function PATCH(req) {
   try {
-    const { id, status } = await req.json();
+    const data = await req.json();
+    const { id, ...fieldsToUpdate } = data;
 
-    if (!id || !status) {
+    if (!id) {
       return Response.json(
-        { message: "ID and status are required" },
+        { message: "ID is required for updating" },
         { status: 400 }
       );
     }
 
+    const setFields = Object.keys(fieldsToUpdate)
+      .map((field) => `${field} = ?`)
+      .join(", ");
+
+    const values = [...Object.values(fieldsToUpdate), id];
+
     const [result] = await pool.query(
-      "UPDATE `businesses` SET status = ? WHERE id = ?",
-      [status, id]
+      `UPDATE businesses SET ${setFields} WHERE id = ?`,
+      values
     );
 
     if (result.affectedRows === 0) {
       return Response.json({ message: "Business not found" }, { status: 404 });
     }
 
-    return Response.json({ message: "Status updated successfully" });
+    return Response.json({ message: "Business updated successfully" });
   } catch (error) {
     console.error(error);
     return Response.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }
 
+// POST: Add new business
 export async function POST(req) {
   try {
     const {
@@ -111,9 +136,12 @@ export async function POST(req) {
       facebook_profile,
       linkedin_profile,
       twitter_profile,
-      images_folder,
+      thumbnail, // Base64 string directly stored
       status,
       industry_type,
+      minPrice,
+      maxPrice,
+      location,
     } = await req.json();
 
     if (!name || !category || !status) {
@@ -124,7 +152,7 @@ export async function POST(req) {
     }
 
     const [result] = await pool.query(
-      "INSERT INTO `businesses` (name, mobile_number, review_count, rating, category, address, website, email_id, plus_code, closing_hours, latitude, longitude, instagram_profile, facebook_profile, linkedin_profile, twitter_profile, images_folder, status, industry_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO `businesses` (name, mobile_number, review_count, rating, category, address, website, email_id, plus_code, closing_hours, latitude, longitude, instagram_profile, facebook_profile, linkedin_profile, twitter_profile, thumbnail, status, industry_type, minPrice, maxPrice, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         name,
         mobile_number,
@@ -142,9 +170,12 @@ export async function POST(req) {
         facebook_profile,
         linkedin_profile,
         twitter_profile,
-        images_folder,
+        thumbnail, // Stores the base64 string
         status,
         industry_type,
+        minPrice,
+        maxPrice,
+        location,
       ]
     );
 
@@ -158,7 +189,7 @@ export async function POST(req) {
   }
 }
 
-// Delete a business
+// DELETE: Remove business
 export async function DELETE(req) {
   let connection;
   try {
@@ -174,7 +205,6 @@ export async function DELETE(req) {
       );
     }
 
-    // Changed 'business' to 'businesses'
     connection = await pool.getConnection();
     const [result] = await connection.query(
       "DELETE FROM `businesses` WHERE id = ?",
