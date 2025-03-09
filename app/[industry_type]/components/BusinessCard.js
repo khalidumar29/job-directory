@@ -36,6 +36,14 @@ const BusinessCard = ({ business }) => {
     }
   }, [business.thumbnail]);
 
+  useEffect(() => {
+    console.log(
+      "Thumbnail received:",
+      business.thumbnail?.substring(0, 50) + "..."
+    );
+    console.log("Image URL set:", imageUrl);
+  }, [business.thumbnail, imageUrl]);
+
   const MapLink =
     business.latitude && business.longitude
       ? `https://www.google.com/maps?q=${business.latitude},${business.longitude}`
@@ -48,10 +56,10 @@ const BusinessCard = ({ business }) => {
   return (
     <div className='card h-100 shadow-sm border-0 hover-shadow transition'>
       {/* Thumbnail Image */}
-      {imageUrl && (
+      {(imageUrl || business.thumbnail) && (
         <div className='card-img-container' style={{ height: "200px" }}>
           <img
-            src={imageUrl}
+            src={imageUrl || business.thumbnail}
             alt={business.name || "Business thumbnail"}
             className='card-img-top'
             style={{
@@ -60,11 +68,6 @@ const BusinessCard = ({ business }) => {
               objectFit: "cover",
               borderTopLeftRadius: "calc(0.375rem - 1px)",
               borderTopRightRadius: "calc(0.375rem - 1px)",
-            }}
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.style.display = "none";
-              e.target.parentElement.style.display = "none";
             }}
           />
         </div>

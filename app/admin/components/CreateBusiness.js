@@ -405,7 +405,6 @@ export default function CreateBusiness() {
                   </div>
                 </div>
               </div>
-
               {/* Contact Information */}
               <div className='col-12'>
                 <div className='card border bg-light'>
@@ -455,45 +454,109 @@ export default function CreateBusiness() {
                   </div>
                 </div>
               </div>
-
               {/* Location Details */}
-              <div className='col-md-6'>
-                <label className='form-label'>Location</label>
-                <input
-                  type='text'
-                  className='form-control'
-                  name='location'
-                  value={formData.location}
-                  onChange={handleChange}
-                  placeholder='Enter location'
-                />
+              <div className='col-12'>
+                <div className='card border bg-light'>
+                  <div className='card-header bg-light py-3'>
+                    <h6 className='mb-0 text-primary'>
+                      <i className='fas fa-map-marker-alt me-2'></i>
+                      Location Details
+                    </h6>
+                  </div>
+                  <div className='card-body'>
+                    <div className='row g-3'>
+                      <div className='col-md-6'>
+                        <label className='form-label'>Location</label>
+                        <input
+                          type='text'
+                          className='form-control'
+                          name='location'
+                          value={formData.location}
+                          onChange={handleChange}
+                          placeholder='Enter location'
+                        />
+                      </div>
+
+                      <div className='col-md-6'>
+                        <label className='form-label'>Address</label>
+                        <input
+                          type='text'
+                          className='form-control'
+                          name='address'
+                          value={formData.address}
+                          onChange={handleChange}
+                          placeholder='Enter full address'
+                        />
+                      </div>
+
+                      <div className='col-md-6'>
+                        <label className='form-label'>Plus Code</label>
+                        <input
+                          type='text'
+                          className='form-control'
+                          name='plus_code'
+                          value={formData.plus_code}
+                          onChange={handleChange}
+                          placeholder='Enter Google Plus Code'
+                        />
+                      </div>
+
+                      <div className='col-md-6'>
+                        <label className='form-label'>Latitude</label>
+                        <input
+                          type='number'
+                          className='form-control'
+                          name='latitude'
+                          value={formData.latitude}
+                          onChange={handleChange}
+                          step='any'
+                          placeholder='Enter latitude'
+                        />
+                      </div>
+
+                      <div className='col-md-6'>
+                        <label className='form-label'>Longitude</label>
+                        <input
+                          type='number'
+                          className='form-control'
+                          name='longitude'
+                          value={formData.longitude}
+                          onChange={handleChange}
+                          step='any'
+                          placeholder='Enter longitude'
+                        />
+                      </div>
+
+                      <div className='col-md-6'>
+                        <label className='form-label'>Minimum Price</label>
+                        <input
+                          type='number'
+                          className='form-control'
+                          name='minPrice'
+                          value={formData.minPrice}
+                          onChange={handleChange}
+                          min='0'
+                          placeholder='Enter minimum price'
+                        />
+                      </div>
+
+                      <div className='col-md-6'>
+                        <label className='form-label'>Maximum Price</label>
+                        <input
+                          type='number'
+                          className='form-control'
+                          name='maxPrice'
+                          value={formData.maxPrice}
+                          onChange={handleChange}
+                          min='0'
+                          placeholder='Enter maximum price'
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className='col-md-6'>
-                <label className='form-label'>Minimum Price</label>
-                <input
-                  type='number'
-                  className='form-control'
-                  name='minPrice'
-                  value={formData.minPrice}
-                  onChange={handleChange}
-                  min='0'
-                  placeholder='Enter minimum price'
-                />
-              </div>
-
-              <div className='col-md-6'>
-                <label className='form-label'>Maximum Price</label>
-                <input
-                  type='number'
-                  className='form-control'
-                  name='maxPrice'
-                  value={formData.maxPrice}
-                  onChange={handleChange}
-                  min='0'
-                  placeholder='Enter maximum price'
-                />
-              </div>
               {/* Operating Information */}
               <div className='col-12'>
                 <div className='card border bg-light'>
@@ -520,7 +583,6 @@ export default function CreateBusiness() {
                   </div>
                 </div>
               </div>
-
               {/* Reviews & Ratings */}
               <div className='col-12'>
                 <div className='card border bg-light'>
@@ -562,7 +624,6 @@ export default function CreateBusiness() {
                   </div>
                 </div>
               </div>
-
               {/* Social Media Links */}
               <div className='col-12'>
                 <div className='card border bg-light'>
@@ -622,7 +683,6 @@ export default function CreateBusiness() {
                   </div>
                 </div>
               </div>
-
               {/* Image Upload */}
               <div className='col-12'>
                 <div className='card border bg-light'>
