@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
+import EditBusinessModal from "./EditBusinessModal";
 
 export default function BusinessList() {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -8,6 +9,8 @@ export default function BusinessList() {
   const [loading, setLoading] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState(null);
   const [statusLoading, setStatusLoading] = useState(null);
+  const [editingBusiness, setEditingBusiness] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [filters, setFilters] = useState({
     business_name: "",
     category: "",
@@ -134,47 +137,71 @@ export default function BusinessList() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const renderStatusDropdown = (business) => {
-    const statuses = [
-      { value: "active", label: "Set Active" },
-      { value: "inactive", label: "Set Inactive" },
-      { value: "pending", label: "Set Pending" },
-    ];
+  //edit functionality
+  const handleEditClick = (business) => {
+    setEditingBusiness(business);
+    setEditModalOpen(true);
+  };
 
-    return (
-      <div className='status-dropdown position-relative'>
-        <button
-          className='btn btn-sm btn-outline-secondary'
-          onClick={() =>
-            setOpenDropdown(openDropdown === business.id ? null : business.id)
-          }
-          disabled={statusLoading === business.id}
-        >
-          Change Status
-        </button>
-        {openDropdown === business.id && (
-          <div
-            className='position-absolute start-0 mt-1 bg-white rounded shadow-sm border'
-            style={{
-              zIndex: 1000,
-              minWidth: "150px",
-              top: "100%",
-            }}
-          >
-            {statuses.map((status) => (
-              <button
-                key={status.value}
-                className='dropdown-item w-100 text-start px-3 py-2 border-0 bg-transparent'
-                onClick={() => handleStatusUpdate(business.id, status.value)}
-                disabled={business.status === status.value}
-              >
-                {status.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    );
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      const response = await fetch("/api/business", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editingBusiness),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update business");
+      }
+
+      toast.success("Business updated successfully");
+      setEditModalOpen(false);
+      fetchBusinesses();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditingBusiness((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size should be less than 5MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setEditingBusiness((prev) => ({
+        ...prev,
+        thumbnail: reader.result,
+      }));
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -192,20 +219,6 @@ export default function BusinessList() {
                 onChange={handleFilter}
               />
             </div>
-            {/* <div className='col-md-4'>
-              <select
-                className='form-select'
-                name='category'
-                value={filters.category}
-                onChange={handleFilter}
-              >
-                <option value=''>All Categories</option>
-                <option value='Retail'>Retail</option>
-                <option value='Restaurant'>Restaurant</option>
-                <option value='Service'>Service</option>
-                <option value='Technology'>Technology</option>
-              </select>
-            </div> */}
             <div className='col-md-4'>
               <select
                 className='form-select'
@@ -314,6 +327,12 @@ export default function BusinessList() {
                           >
                             Delete
                           </button>
+                          <button
+                            className='btn btn-sm btn-primary me-2'
+                            onClick={() => handleEditClick(business)}
+                          >
+                            Edit
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -375,6 +394,17 @@ export default function BusinessList() {
           )}
         </div>
       </div>
+      {editModalOpen && editingBusiness && (
+        <EditBusinessModal
+          editingBusiness={editingBusiness}
+          setEditingBusiness={setEditingBusiness}
+          handleEditSubmit={handleEditSubmit}
+          handleEditChange={handleEditChange}
+          handleImageChange={handleImageChange}
+          loading={loading}
+          setEditModalOpen={setEditModalOpen}
+        />
+      )}
     </div>
   );
 }

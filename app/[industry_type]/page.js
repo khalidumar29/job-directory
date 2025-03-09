@@ -1,225 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import {
-  Phone,
-  MapPin,
-  Star,
-  Clock,
-  Facebook,
-  Instagram,
-  Twitter,
-  Linkedin,
-  Mail,
-  ExternalLink,
-} from "lucide-react";
-
-const BusinessCard = ({ business }) => {
-  const MapLink =
-    business.latitude && business.longitude
-      ? `https://www.google.com/maps?q=${business.latitude},${business.longitude}`
-      : business.location
-      ? `https://www.google.com/maps/search/${encodeURIComponent(
-          business.location
-        )}`
-      : "#";
-
-  return (
-    <div className='card h-100 shadow-sm border-0 hover-shadow transition'>
-      <div className='card-body d-flex flex-column p-3'>
-        {/* Header Section */}
-        <div className='d-flex justify-content-between align-items-start mb-3'>
-          <div>
-            <h5 className='card-title h5 fw-bold text-primary mb-1'>
-              {business.name || "Unnamed Business"}
-            </h5>
-            <div className='d-flex align-items-center gap-2 mb-2'>
-              {/* <span
-                className={`badge bg-${
-                  business.status === "active" ? "success" : "warning"
-                } rounded-pill`}
-              >
-                {business.status || "Unknown"}
-              </span> */}
-              <span className='badge bg-light text-dark rounded-pill'>
-                {business.category || business.industry_type || "No Category"}
-              </span>
-            </div>
-          </div>
-          {business.rating && (
-            <div className='rating-badge bg-warning-soft rounded-3 p-2 text-warning'>
-              <div className='d-flex align-items-center'>
-                <Star className='me-1' size={16} />
-                <span className='fw-bold'>{business.rating}</span>
-              </div>
-              <div className='text-center small mt-1'>
-                <small>{business.review_count || 0} reviews</small>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Business Details */}
-        <div className='flex-grow-1 mb-3'>
-          <div className='info-grid'>
-            {/* Contact Info */}
-            <div
-              style={{
-                marginBottom: "10px",
-              }}
-              className='info-item d-flex align-items-center'
-            >
-              <Phone className='text-primary' size={16} />
-              <span
-                style={{
-                  marginLeft: "10px",
-                }}
-                className='ms-2'
-              >
-                {business.mobile_number || "No Contact"}
-              </span>
-            </div>
-
-            {/* Location */}
-            <div
-              className='d-flex align-items-start mb-2'
-              style={{ height: "60px" }}
-            >
-              <MapPin
-                className='me-3 text-danger'
-                style={{ flexShrink: 0 }}
-                size={20}
-              />
-              <a
-                href={MapLink}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='text-decoration-none text-dark ms-1'
-                style={{
-                  marginLeft: "10px",
-                  wordBreak: "break-word",
-                  flexGrow: 1,
-                }}
-              >
-                {business.address || "No Address"}
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {/* Closing Hours */}
-        <div
-          className='d-flex align-items-start mb-2'
-          style={{
-            height: "40px", // Set height for Closes
-            maxHeight: "40px", // Limit max height
-            overflowY: "scroll", // Make content scrollable
-            scrollbarWidth: "none", // For Firefox (Hide scrollbar)
-            msOverflowStyle: "none", // For IE/Edge (Hide scrollbar)
-          }}
-        >
-          <Clock
-            className='me-3 text-info'
-            style={{ flexShrink: 0 }}
-            size={20}
-          />
-          <span
-            style={{
-              marginLeft: "10px",
-              flexGrow: 1,
-              wordBreak: "break-word",
-              maxHeight: "40px", // Limit height for Closes
-              overflowY: "scroll", // Make content scrollable
-              paddingRight: "15px", // Prevent hiding text due to scroll bar
-            }}
-            className='ms-1'
-          >
-            {business.closing_hours && (
-              <div className='info-item d-flex align-items-center mb-3'>
-                <Clock className='text-info' size={16} />
-                <span className='ms-2'>Closes: {business.closing_hours}</span>
-              </div>
-            )}
-          </span>
-        </div>
-
-        {/* Contact and Social Links */}
-        <div className='border-top pt-3'>
-          {/* Primary Actions */}
-          <div className='d-flex gap-2 mb-2'>
-            {business.website && (
-              <a
-                href={business.website}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='btn btn-primary btn-sm flex-grow-1'
-              >
-                <ExternalLink size={14} className='me-1' />
-                Visit Website
-              </a>
-            )}
-            {business.email_id && (
-              <a
-                href={`mailto:${business.email_id}`}
-                className='btn btn-outline-secondary btn-sm flex-grow-1'
-              >
-                <Mail size={14} className='me-1' />
-                Contact
-              </a>
-            )}
-          </div>
-
-          {/* Social Media */}
-          <div
-            style={{ gap: "10px" }}
-            className='d-flex justify-content-center gap-2'
-          >
-            {business.facebook_profile && (
-              <a
-                href={business.facebook_profile}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='social-link'
-              >
-                <Facebook size={16} />
-              </a>
-            )}
-            {business.instagram_profile && (
-              <a
-                href={business.instagram_profile}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='social-link'
-              >
-                <Instagram size={16} />
-              </a>
-            )}
-            {business.twitter_profile && (
-              <a
-                href={business.twitter_profile}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='social-link'
-              >
-                <Twitter size={16} />
-              </a>
-            )}
-            {business.linkedin_profile && (
-              <a
-                href={business.linkedin_profile}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='social-link'
-              >
-                <Linkedin size={16} />
-              </a>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+import BusinessCard from "./components/BusinessCard";
+import FilterSection from "./components/FilterSection";
 
 const Page = () => {
   const params = useParams();
@@ -228,26 +11,59 @@ const Page = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState({
+    search: "",
+    location: "",
+    priceRange: "",
+    sortBy: "newest",
+  });
+
   const [pagination, setPagination] = useState({
     total: 0,
     totalPages: 0,
     page: 1,
     limit: 10,
   });
+  const [industries, setIndustries] = useState([]); // Add this state
+
+  // Add this new fetch function for industries
+  const fetchIndustries = async () => {
+    try {
+      const response = await fetch("/api/industries");
+      const data = await response.json();
+      setIndustries(data.data);
+    } catch (error) {
+      console.error("Error fetching industries:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchBusinesses = async () => {
       try {
         setLoading(true);
 
+        // First, fetch industries if not already loaded
+        if (industries.length === 0) {
+          await fetchIndustries();
+        }
+
         const params = new URLSearchParams({
           page: currentPage.toString(),
           limit: "10",
         });
 
-        // Only add industry_type if it's not "all"
-        if (industry_type && industry_type !== "all") {
-          params.append("industry_type", industry_type);
+        if (filters.search) params.append("search", filters.search);
+        if (filters.location) params.append("location", filters.location);
+        if (filters.priceRange) params.append("priceRange", filters.priceRange);
+        if (filters.sortBy) params.append("sortBy", filters.sortBy);
+        // Get industry ID from industry_type slug
+        const selectedIndustry = industries.find(
+          (ind) => ind.name.toLowerCase().replace(/\s+/g, "-") === industry_type
+        );
+
+        // Only add industry_type if it's not "all" and we found a matching industry
+        if (industry_type && industry_type !== "all" && selectedIndustry) {
+          params.append("industry_type", selectedIndustry.id);
         }
 
         const url = `/api/business?status=active&${params.toString()}`;
@@ -279,7 +95,16 @@ const Page = () => {
     };
 
     fetchBusinesses();
-  }, [industry_type, currentPage]);
+  }, [industry_type, currentPage, industries, filters]);
+
+  const handleReset = () => {
+    setFilters({
+      search: "",
+      location: "",
+      priceRange: "",
+      sortBy: "newest",
+    });
+  };
 
   if (loading) {
     return (
@@ -381,6 +206,11 @@ const Page = () => {
           padding: "0 1rem",
         }}
       >
+        <FilterSection
+          filters={filters}
+          setFilters={setFilters}
+          handleReset={handleReset}
+        />
         <div
           style={{
             display: "grid",

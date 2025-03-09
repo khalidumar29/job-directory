@@ -8,6 +8,9 @@ const INITIAL_STATE = {
   category: "",
   industry_type: "",
   status: "active",
+  location: "",
+  minPrice: "",
+  maxPrice: "",
 
   // Contact Information
   mobile_number: "",
@@ -33,9 +36,8 @@ const INITIAL_STATE = {
   twitter_profile: "",
   linkedin_profile: "",
 
-  // Image Handling
-  images: [],
-  images_folder: "",
+  // Image/Thumbnail
+  thumbnail: "", // Base64 string
 };
 
 const CATEGORIES = [
@@ -58,13 +60,14 @@ export default function CreateBusiness() {
   const [success, setSuccess] = useState("");
   const [imagePreview, setImagePreview] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
+  const [industries, setIndustries] = useState([]);
 
   const validateForm = (data) => {
     const errors = {};
 
     // Required fields
     if (!data.name?.trim()) errors.name = "Business name is required";
-    if (!data.category) errors.category = "Category is required";
+    if (!data.industry_type) errors.industry_type = "Industry Type is required";
     if (!data.status) errors.status = "Status is required";
 
     // Number validations
@@ -73,6 +76,19 @@ export default function CreateBusiness() {
     }
     if (data.review_count && Number(data.review_count) < 0) {
       errors.review_count = "Review count cannot be negative";
+    }
+    if (data.minPrice && Number(data.minPrice) < 0) {
+      errors.minPrice = "Minimum price cannot be negative";
+    }
+    if (data.maxPrice && Number(data.maxPrice) < 0) {
+      errors.maxPrice = "Maximum price cannot be negative";
+    }
+    if (
+      data.minPrice &&
+      data.maxPrice &&
+      Number(data.minPrice) > Number(data.maxPrice)
+    ) {
+      errors.maxPrice = "Maximum price must be greater than minimum price";
     }
 
     // Email validation
@@ -104,38 +120,31 @@ export default function CreateBusiness() {
     setValidationErrors((prev) => ({ ...prev, [name]: "" }));
   }, []);
 
-  const handleFileChange = useCallback(
-    (e) => {
-      const files = Array.from(e.target.files);
+  // Add this handler function after other handlers
+  const handleImageChange = useCallback((e) => {
+    const file = e.target.files[0];
 
-      if (files.length > 5) {
-        toast.error("Maximum 5 images allowed");
-        e.target.value = null; // Reset file input
-        return;
-      }
+    if (!file) return;
 
-      const validFiles = files.filter((file) => {
-        const isValid =
-          file.type.startsWith("image/") && file.size <= 5 * 1024 * 1024;
-        if (!isValid) {
-          toast.error(
-            `${file.name} is invalid. Only images up to 5MB are allowed.`
-          );
-        }
-        return isValid;
-      });
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
 
-      // Clean up old previews
-      imagePreview.forEach((url) => URL.revokeObjectURL(url));
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size should be less than 5MB");
+      return;
+    }
 
-      if (validFiles.length > 0) {
-        setFormData((prev) => ({ ...prev, images: validFiles }));
-        const previews = validFiles.map((file) => URL.createObjectURL(file));
-        setImagePreview(previews);
-      }
-    },
-    [imagePreview]
-  );
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData((prev) => ({
+        ...prev,
+        thumbnail: reader.result, // This will be the base64 string
+      }));
+    };
+    reader.readAsDataURL(file);
+  }, []);
 
   const removeImage = useCallback(
     (index) => {
@@ -171,14 +180,14 @@ export default function CreateBusiness() {
     setValidationErrors({});
 
     try {
-      // Validate form
       const errors = validateForm(formData);
       if (Object.keys(errors).length > 0) {
         setValidationErrors(errors);
         const firstError = Object.values(errors)[0];
         setError(firstError);
         toast.error(firstError);
-        return; // Stop execution if validation fails
+        setLoading(false);
+        return;
       }
 
       // Prepare data for submission
@@ -188,6 +197,8 @@ export default function CreateBusiness() {
         rating: Number(formData.rating) || 0,
         latitude: formData.latitude ? Number(formData.latitude) : null,
         longitude: formData.longitude ? Number(formData.longitude) : null,
+        minPrice: formData.minPrice ? Number(formData.minPrice) : null,
+        maxPrice: formData.maxPrice ? Number(formData.maxPrice) : null,
         mobile_number: formData.mobile_number?.trim() || null,
         address: formData.address?.trim() || null,
         website: formData.website?.trim() || null,
@@ -199,10 +210,9 @@ export default function CreateBusiness() {
         linkedin_profile: formData.linkedin_profile?.trim() || null,
         twitter_profile: formData.twitter_profile?.trim() || null,
         industry_type: formData.industry_type?.trim() || null,
-        images_folder: null,
+        location: formData.location?.trim() || null,
+        thumbnail: formData.thumbnail || null, // Add this line for the thumbnail
       };
-
-      delete dataToSend.images;
 
       const response = await fetch("/api/business", {
         method: "POST",
@@ -218,20 +228,12 @@ export default function CreateBusiness() {
         throw new Error(data.message || "Failed to create business");
       }
 
-      // Success case
       toast.success("Business created successfully!");
       setSuccess("Business created successfully!");
-      setError(""); // Clear any existing errors
-      resetForm(); // This will clear the form
-      setValidationErrors({}); // Clear validation errors
-
-      // Reset file input
-      const fileInput = document.querySelector('input[type="file"]');
-      if (fileInput) fileInput.value = "";
+      resetForm();
     } catch (err) {
       setError(err.message);
       toast.error(err.message);
-      setSuccess(""); // Clear any existing success message
     } finally {
       setLoading(false);
     }
@@ -243,6 +245,21 @@ export default function CreateBusiness() {
       imagePreview.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [imagePreview]);
+
+  useEffect(() => {
+    const fetchIndustries = async () => {
+      try {
+        const response = await fetch("/api/industries");
+        const result = await response.json();
+        setIndustries(result.data);
+      } catch (error) {
+        console.error("Failed to fetch industries:", error);
+        toast.error("Failed to load industries");
+      }
+    };
+
+    fetchIndustries();
+  }, []);
 
   return (
     <div className='container-fluid py-4'>
@@ -323,41 +340,41 @@ export default function CreateBusiness() {
                         )}
                       </div>
                       <div className='col-md-6'>
-                        <label className='form-label'>
-                          Category <span className='text-danger'>*</span>
-                        </label>
-                        <select
-                          className={`form-select ${
-                            formData.category ? "is-valid" : "is-invalid"
-                          }`}
-                          name='category'
-                          value={formData.category}
-                          onChange={handleChange}
-                          required
-                        >
-                          <option value=''>Select Category</option>
-                          {CATEGORIES.map((category) => (
-                            <option key={category.value} value={category.value}>
-                              {category.label}
-                            </option>
-                          ))}
-                        </select>
-                        {!formData.category && (
-                          <div className='invalid-feedback'>
-                            Category is required
-                          </div>
-                        )}
-                      </div>
-                      <div className='col-md-6'>
-                        <label className='form-label'>Industry Type</label>
+                        <label className='form-label'>Category</label>
                         <input
                           type='text'
                           className='form-control'
+                          name='category'
+                          value={formData.category}
+                          onChange={handleChange}
+                          placeholder='Enter category'
+                        />
+                      </div>
+                      <div className='col-md-6'>
+                        <label className='form-label'>
+                          Industry Type <span className='text-danger'>*</span>
+                        </label>
+                        <select
+                          className={`form-select ${
+                            formData.industry_type ? "is-valid" : "is-invalid"
+                          }`}
                           name='industry_type'
                           value={formData.industry_type}
                           onChange={handleChange}
-                          placeholder='Enter industry type'
-                        />
+                          required
+                        >
+                          <option value=''>Select Industry Type</option>
+                          {industries.map((industry) => (
+                            <option key={industry.id} value={industry.id}>
+                              {industry.industry_type}
+                            </option>
+                          ))}
+                        </select>
+                        {!formData.industry_type && (
+                          <div className='invalid-feedback'>
+                            Industry Type is required
+                          </div>
+                        )}
                       </div>
                       <div className='col-md-6'>
                         <label className='form-label'>
@@ -440,65 +457,42 @@ export default function CreateBusiness() {
               </div>
 
               {/* Location Details */}
-              <div className='col-12'>
-                <div className='card border bg-light'>
-                  <div className='card-header bg-light py-3'>
-                    <h6 className='mb-0 text-primary'>
-                      <i className='fas fa-map-marker-alt me-2'></i>
-                      Location Details
-                    </h6>
-                  </div>
-                  <div className='card-body'>
-                    <div className='row g-3'>
-                      <div className='col-12'>
-                        <label className='form-label'>Address</label>
-                        <textarea
-                          className='form-control'
-                          name='address'
-                          value={formData.address}
-                          onChange={handleChange}
-                          rows='3'
-                          placeholder='Enter complete address'
-                        />
-                      </div>
-                      <div className='col-md-4'>
-                        <label className='form-label'>Plus Code</label>
-                        <input
-                          type='text'
-                          className='form-control'
-                          name='plus_code'
-                          value={formData.plus_code}
-                          onChange={handleChange}
-                          placeholder='Enter plus code'
-                        />
-                      </div>
-                      <div className='col-md-4'>
-                        <label className='form-label'>Latitude</label>
-                        <input
-                          type='number'
-                          className='form-control'
-                          name='latitude'
-                          value={formData.latitude}
-                          onChange={handleChange}
-                          step='any'
-                          placeholder='Enter latitude'
-                        />
-                      </div>
-                      <div className='col-md-4'>
-                        <label className='form-label'>Longitude</label>
-                        <input
-                          type='number'
-                          className='form-control'
-                          name='longitude'
-                          value={formData.longitude}
-                          onChange={handleChange}
-                          step='any'
-                          placeholder='Enter longitude'
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <div className='col-md-6'>
+                <label className='form-label'>Location</label>
+                <input
+                  type='text'
+                  className='form-control'
+                  name='location'
+                  value={formData.location}
+                  onChange={handleChange}
+                  placeholder='Enter location'
+                />
+              </div>
+
+              <div className='col-md-6'>
+                <label className='form-label'>Minimum Price</label>
+                <input
+                  type='number'
+                  className='form-control'
+                  name='minPrice'
+                  value={formData.minPrice}
+                  onChange={handleChange}
+                  min='0'
+                  placeholder='Enter minimum price'
+                />
+              </div>
+
+              <div className='col-md-6'>
+                <label className='form-label'>Maximum Price</label>
+                <input
+                  type='number'
+                  className='form-control'
+                  name='maxPrice'
+                  value={formData.maxPrice}
+                  onChange={handleChange}
+                  min='0'
+                  placeholder='Enter maximum price'
+                />
               </div>
               {/* Operating Information */}
               <div className='col-12'>
@@ -630,66 +624,66 @@ export default function CreateBusiness() {
               </div>
 
               {/* Image Upload */}
-              {/* <div className='col-12'>
+              <div className='col-12'>
                 <div className='card border bg-light'>
                   <div className='card-header bg-light py-3'>
                     <h6 className='mb-0 text-primary'>
-                      <i className='fas fa-images me-2'></i>
-                      Business Images
+                      <i className='fas fa-image me-2'></i>
+                      Business Thumbnail
                     </h6>
                   </div>
                   <div className='card-body'>
                     <div className='row g-3'>
                       <div className='col-12'>
-                        <label className='form-label'>Upload Images</label>
+                        <label className='form-label'>
+                          Upload Thumbnail Image
+                        </label>
                         <input
                           type='file'
                           className='form-control'
-                          onChange={handleFileChange}
+                          onChange={handleImageChange}
                           accept='image/*'
-                          multiple
                         />
                         <small className='text-muted d-block mt-1'>
-                          Max 5 images. Supported formats: JPG, PNG, GIF (Max:
-                          5MB each)
+                          Maximum size: 5MB. Supported formats: JPG, PNG, GIF
                         </small>
                       </div>
-                      {imagePreview.length > 0 && (
-                        <div className='col-12'>
-                          <div className='d-flex gap-2 gap-md-3 flex-wrap mt-2'>
-                            {imagePreview.map((preview, index) => (
-                              <div
-                                key={index}
-                                className='position-relative'
-                                style={{ width: "120px", height: "120px" }}
-                              >
-                                <img
-                                  src={preview}
-                                  alt={`Preview ${index + 1}`}
-                                  className='img-thumbnail'
-                                  style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                  }}
-                                />
-                                <button
-                                  type='button'
-                                  className='btn btn-danger btn-sm position-absolute top-0 end-0 p-1'
-                                  onClick={() => removeImage(index)}
-                                  aria-label='Remove image'
-                                >
-                                  ×
-                                </button>
-                              </div>
-                            ))}
+                      {formData.thumbnail && (
+                        <div className='col-12 mt-3'>
+                          <div
+                            className='position-relative'
+                            style={{ width: "200px" }}
+                          >
+                            <img
+                              src={formData.thumbnail}
+                              alt='Business thumbnail'
+                              className='img-thumbnail'
+                              style={{
+                                width: "100%",
+                                height: "200px",
+                                objectFit: "cover",
+                              }}
+                            />
+                            <button
+                              type='button'
+                              className='btn btn-danger btn-sm position-absolute top-0 end-0 m-1'
+                              onClick={() => {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  thumbnail: "",
+                                }));
+                              }}
+                              aria-label='Remove image'
+                            >
+                              ×
+                            </button>
                           </div>
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
-              </div> */}
+              </div>
               {/* Continue with other sections using the same pattern... */}
             </div>
             <div
