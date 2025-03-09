@@ -108,9 +108,12 @@ const Page = () => {
 
   if (loading) {
     return (
-      <div className='container-fluid py-5 text-center'>
+      <div
+        style={{ marginTop: "100px" }}
+        className='container-fluid py-5 text-center'
+      >
         <div className='spinner-border text-primary' role='status'>
-          <span className='visually-hidden'>Loading...</span>
+          <span className='visually-hidden'></span>
         </div>
       </div>
     );
