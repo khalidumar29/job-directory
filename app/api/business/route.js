@@ -15,7 +15,7 @@ export async function GET(req) {
     const limit = parseInt(searchParams.get("limit")) || 10;
     const offset = (page - 1) * limit;
 
-    let query = "SELECT * FROM `businesses` WHERE 1";
+    let query = "SELECT SQL_CALC_FOUND_ROWS * FROM `businesses` WHERE 1";
     let values = [];
 
     if (businessName) {
@@ -41,30 +41,7 @@ export async function GET(req) {
     values.push(limit, offset);
 
     const [rows] = await pool.query(query, values);
-
-    let countQuery = "SELECT COUNT(*) AS total FROM `businesses` WHERE 1";
-    let countValues = [];
-
-    if (businessName) {
-      countQuery += " AND name LIKE ?";
-      countValues.push(`%${businessName}%`);
-    }
-    if (industry_type) {
-      countQuery += " AND industry_type = ?";
-      countValues.push(industry_type);
-    }
-    if (status) {
-      countQuery += " AND status = ?";
-      countValues.push(status);
-    }
-    if (location) {
-      countQuery += " AND location = ?";
-      countValues.push(location);
-    }
-    countQuery += " AND minPrice >= ? AND maxPrice <= ?";
-    countValues.push(minPrice, maxPrice);
-
-    const [[{ total }]] = await pool.query(countQuery, countValues);
+    const [[{ total }]] = await pool.query("SELECT FOUND_ROWS() AS total");
 
     return Response.json({
       data: rows,
