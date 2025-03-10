@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import "bootstrap/dist/css/bootstrap.min.css";
 import IndustryForm from "./IndustryForm";
 import IndustriesList from "./IndustriesList";
+import IndustriesList from "./IndustriesList";
 
 // API functions
 const fetchIndustries = async () => {
