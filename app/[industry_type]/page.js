@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import BusinessCard from "./components/BusinessCard";
 import FilterSection from "./components/FilterSection";
+import Link from "next/link";
 
 const Page = () => {
   const params = useParams();
@@ -130,124 +131,63 @@ const Page = () => {
   }
 
   return (
-    <div
-      style={{
-        padding: "3rem 1rem",
-        backgroundColor: "#f8f9fa",
-        minHeight: "100vh",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "1400px",
-          margin: "0 auto",
-          marginBottom: "3rem",
-          padding: "0 1rem",
-          marginTop: "70px",
-        }}
-      >
+    <div style={{ marginTop: "120px" }} className='container'>
+      <div>
+        <h1
+          style={{
+            fontSize: "clamp(1.5rem, 4vw, 2.5rem)",
+            fontWeight: "700",
+            textAlign: "center",
+            color: "#2d3748",
+            margin: 0,
+            lineHeight: 1.2,
+            wordBreak: "break-word",
+            maxWidth: "100%",
+          }}
+        >
+          {industry_type
+            ? industry_type
+                .split("-")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")
+            : "All"}{" "}
+          Businesses
+        </h1>
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
-            gap: "1rem",
+            justifyContent: "center",
+            flexWrap: "wrap",
+            gap: "0.5rem",
           }}
         >
-          <h1
+          <small
             style={{
-              fontSize: "clamp(1.5rem, 4vw, 2.5rem)",
-              fontWeight: "700",
-              textAlign: "center",
-              color: "#2d3748",
-              margin: 0,
-              lineHeight: 1.2,
-              wordBreak: "break-word",
-              maxWidth: "100%",
+              fontSize: "clamp(0.875rem, 2.5vw, 1.125rem)",
+              color: "#718096",
+              fontWeight: "500",
+              padding: "0.25rem 0.75rem",
+              backgroundColor: "#f1f5f9",
+              borderRadius: "9999px",
+              whiteSpace: "nowrap",
             }}
           >
-            {industry_type
-              ? industry_type
-                  .split("-")
-                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                  .join(" ")
-              : "All"}{" "}
-            Businesses
-          </h1>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexWrap: "wrap",
-              gap: "0.5rem",
-            }}
-          >
-            <small
-              style={{
-                fontSize: "clamp(0.875rem, 2.5vw, 1.125rem)",
-                color: "#718096",
-                fontWeight: "500",
-                padding: "0.25rem 0.75rem",
-                backgroundColor: "#f1f5f9",
-                borderRadius: "9999px",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {pagination.total || 0} Total Businesses
-            </small>
-          </div>
+            {pagination.total || 0} Total Businesses
+          </small>
         </div>
       </div>
-
-      {/* Grid Container */}
-      <div
-        style={{
-          maxWidth: "1400px",
-          margin: "0 auto",
-          padding: "0 1rem",
-        }}
-      >
+      <div className='row g-4'>
         <FilterSection
           filters={filters}
           setFilters={setFilters}
           handleReset={handleReset}
         />
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
-            gap: "2rem",
-            alignItems: "stretch",
-            marginBottom: "4rem",
-          }}
-        >
-          {businesses.map((business) => (
-            <div
-              key={business.id}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                height: "100%",
-                backgroundColor: "#ffffff",
-                borderRadius: "1rem",
-                boxShadow:
-                  "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-                transition:
-                  "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-                ":hover": {
-                  transform: "translateY(-4px)",
-                  boxShadow:
-                    "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-                },
-              }}
-            >
-              <BusinessCard business={business} />
-            </div>
-          ))}
-        </div>
+        {businesses.map((business) => (
+          <div key={business.id} className='col-12 col-md-6 col-lg-4'>
+            <BusinessCard business={business} />
+          </div>
+        ))}
       </div>
 
       {/* Pagination */}
