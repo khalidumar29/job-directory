@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import IndustryForm from "./IndustryForm";
-import IndustriesList from "./industriesList";
+import IndustriesList from "./IndustriesList";
 
 export default function IndustriesPage() {
   const [industries, setIndustries] = useState([]);
