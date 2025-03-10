@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import BusinessCard from "./components/BusinessCard";
 import FilterSection from "./components/FilterSection";
-import Link from "next/link";
 
 const Page = () => {
   const params = useParams();
@@ -13,7 +12,7 @@ const Page = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({
-    search: "",
+    business_name: "",
     location: "",
     priceRange: "",
     sortBy: "newest",
@@ -52,8 +51,10 @@ const Page = () => {
           page: currentPage.toString(),
           limit: "10",
         });
+        console.log(filters);
 
-        if (filters.search) params.append("search", filters.search);
+        if (filters.business_name)
+          params.append("business_name", filters.business_name);
         if (filters.location) params.append("location", filters.location);
         if (filters.priceRange) params.append("priceRange", filters.priceRange);
         if (filters.sortBy) params.append("sortBy", filters.sortBy);
@@ -66,6 +67,7 @@ const Page = () => {
         if (industry_type && industry_type !== "all" && selectedIndustry) {
           params.append("industry_type", selectedIndustry.id);
         }
+        console.log(params.toString());
 
         const url = `/api/business?status=active&${params.toString()}`;
         const response = await fetch(url);
