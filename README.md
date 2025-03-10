@@ -170,4 +170,81 @@ WHERE 1;
 
 ---
 
+# Industries API Documentation
+
+This API manages CRUD operations for industries, including listing, creating, updating, and deleting industry records.
+
+---
+
+### Endpoints:
+
+**GET /api/industries**
+
+- **Description**: Fetches all industries.
+- **Response:**
+
+```json
+{
+  "data": [
+    { "id": 1, "name": "Tech", "industry_type": "Software" },
+    { "id": 2, "name": "Healthcare", "industry_type": "Service" }
+  ]
+}
+```
+
+**POST /api/industries**
+
+- Adds a new industry.
+
+**Request Body:**
+
+```json
+{
+  "name": "Finance",
+  "industry_type": "Service"
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Industry created",
+  "id": 3
+}
+```
+
+**PUT /api/industries**
+
+- Updates an existing industry record.
+
+**Request Body:**
+
+```json
+{
+  "id": 1,
+  "name": "Updated Industry",
+  "industry_type": "Updated Type"
+}
+```
+
+**DELETE /api/industries**
+
+- Deletes an industry by ID.
+
+**Request Body:**
+
+```json
+{
+  "id": 1
+}
+```
+
+---
+
+### Responses:
+
+- **200 OK:** Successful operation.
+- **500 Internal Server Error:** Issues with database or server.
+
 This documentation ensures **full validation** and follows **REST API best practices**. 🚀
