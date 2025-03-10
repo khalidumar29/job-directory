@@ -14,7 +14,6 @@ export async function GET(req) {
     const page = parseInt(searchParams.get("page")) || 1;
     const limit = parseInt(searchParams.get("limit")) || 10;
     const offset = (page - 1) * limit;
-    console.log(businessName);
 
     let query = "SELECT SQL_CALC_FOUND_ROWS * FROM `businesses` WHERE 1";
     let values = [];
