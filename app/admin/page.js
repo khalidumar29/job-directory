@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import CreateBusiness from "./components/CreateBusiness";
 import BusinessList from "./components/BusinessList";
+import IndustriesPage from "./components/Industries";
 
 const AdminDashboard = () => {
   const router = useRouter();
@@ -86,6 +87,7 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+      <IndustriesPage />
 
       {/* Optional: Mobile quick action button */}
       <div
