@@ -1,5 +1,6 @@
 "use client";
 import { DollarSign, MapPinIcon, Search, X } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 const FilterSection = ({ filters, setFilters, handleReset, handleFilter }) => {
@@ -87,7 +88,13 @@ const FilterSection = ({ filters, setFilters, handleReset, handleFilter }) => {
                   onChange={handleInputChange}
                 />
                 <label htmlFor='minPrice'>
-                  <DollarSign size={16} className='me-2' />
+                  <Image
+                    src={"/dirham.png"}
+                    alt='dirham'
+                    width={40}
+                    height={30}
+                    className='me-2'
+                  />
                   Min Price
                 </label>
               </div>
@@ -105,7 +112,13 @@ const FilterSection = ({ filters, setFilters, handleReset, handleFilter }) => {
                   onChange={handleInputChange}
                 />
                 <label htmlFor='maxPrice'>
-                  <DollarSign size={16} className='me-2' />
+                  <Image
+                    src={"/dirham.png"}
+                    alt='dirham'
+                    width={40}
+                    height={30}
+                    className='me-2'
+                  />
                   Max Price
                 </label>
               </div>

@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 export default function EditBusinessModal({
@@ -297,7 +298,15 @@ export default function EditBusinessModal({
                             Min Price
                           </label>
                           <div className='input-group'>
-                            <span className='input-group-text'>$</span>
+                            <span className='input-group-text'>
+                              <Image
+                                src={"/dirham.png"}
+                                alt='dirham'
+                                width={30}
+                                height={20}
+                                className='me-2'
+                              />
+                            </span>
                             <input
                               type='number'
                               className='form-control'
@@ -312,7 +321,16 @@ export default function EditBusinessModal({
                             Max Price
                           </label>
                           <div className='input-group'>
-                            <span className='input-group-text'>$</span>
+                            <span className='input-group-text'>
+                              {" "}
+                              <Image
+                                src={"/dirham.png"}
+                                alt='dirham'
+                                width={30}
+                                height={20}
+                                className='me-2'
+                              />
+                            </span>
                             <input
                               type='number'
                               className='form-control'
