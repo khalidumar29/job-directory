@@ -8,7 +8,7 @@ const INITIAL_STATE = {
   name: "",
   category: "",
   industry_type: "",
-  status: "active",
+  status: "pending", // Changed default to pending
   location: "",
   minPrice: "",
   maxPrice: "",
@@ -41,11 +41,7 @@ const INITIAL_STATE = {
   thumbnail: "", // Base64 string
 };
 
-const STATUS_OPTIONS = [
-  { value: "active", label: "Active" },
-  { value: "inactive", label: "Inactive" },
-  { value: "pending", label: "Pending" },
-];
+// Removed STATUS_OPTIONS as it's no longer needed
 
 // API functions for React Query
 const fetchIndustries = async () => {
@@ -117,7 +113,7 @@ export default function CreateBusiness() {
     // Required fields
     if (!data.name?.trim()) errors.name = "Business name is required";
     if (!data.industry_type) errors.industry_type = "Industry Type is required";
-    if (!data.status) errors.status = "Status is required";
+    // Removed status validation since it's now fixed
 
     // Number validations
     if (data.rating && (Number(data.rating) < 0 || Number(data.rating) > 5)) {
@@ -164,6 +160,9 @@ export default function CreateBusiness() {
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
+    // Prevent changing status field
+    if (name === "status") return;
+
     setFormData((prev) => ({ ...prev, [name]: value }));
     // Clear validation error when field is modified
     setValidationErrors((prev) => ({ ...prev, [name]: "" }));
@@ -235,6 +234,7 @@ export default function CreateBusiness() {
       // Prepare data for submission
       const dataToSend = {
         ...formData,
+        status: "pending", // Ensure status is always pending
         review_count: Number(formData.review_count) || 0,
         rating: Number(formData.rating) || 0,
         latitude: formData.latitude ? Number(formData.latitude) : null,
@@ -392,26 +392,16 @@ export default function CreateBusiness() {
                         <label className='form-label'>
                           Status <span className='text-danger'>*</span>
                         </label>
-                        <select
-                          className={`form-select ${
-                            formData.status ? "is-valid" : "is-invalid"
-                          }`}
-                          name='status'
-                          value={formData.status}
-                          onChange={handleChange}
-                          required
-                        >
-                          {STATUS_OPTIONS.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                        {!formData.status && (
-                          <div className='invalid-feedback'>
-                            Status is required
-                          </div>
-                        )}
+                        <input
+                          type='text'
+                          className='form-control bg-light'
+                          value='Pending'
+                          disabled
+                          readOnly
+                        />
+                        <small className='text-muted'>
+                          Business status is set to pending by default
+                        </small>
                       </div>
                     </div>
                   </div>

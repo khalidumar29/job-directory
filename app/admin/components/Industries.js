@@ -1,40 +1,117 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import "bootstrap/dist/css/bootstrap.min.css";
 import IndustryForm from "./IndustryForm";
-import IndustriesList from "./industriesList";
+import IndustriesList from "./IndustriesList";
+
+// API functions
+const fetchIndustries = async () => {
+  const response = await fetch("/api/industries");
+  if (!response.ok) throw new Error("Failed to fetch industries");
+  const result = await response.json();
+  return result.data || [];
+};
+
+const addIndustry = async (formData) => {
+  const response = await fetch("/api/industries", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(formData),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(
+      errorData.message ||
+        errorData.errors?.join(", ") ||
+        "Failed to add industry"
+    );
+  }
+
+  return response.json();
+};
+
+const updateIndustry = async (formData) => {
+  const response = await fetch("/api/industries", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(formData),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(
+      errorData.message ||
+        errorData.errors?.join(", ") ||
+        "Failed to update industry"
+    );
+  }
+
+  return response.json();
+};
+
+const deleteIndustry = async (id) => {
+  const response = await fetch("/api/industries", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id }),
+  });
+
+  if (!response.ok) throw new Error("Failed to delete industry");
+  return response.json();
+};
 
 export default function IndustriesPage() {
-  const [industries, setIndustries] = useState([]);
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({ name: "", industry_type: "" });
   const [editMode, setEditMode] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch all industries
-  const fetchIndustries = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("/api/industries");
-      if (!response.ok) throw new Error("Failed to fetch industries");
-
-      const result = await response.json();
-      setIndustries(result.data || []);
-      setError(null);
-    } catch (err) {
+  // Fetch industries using TanStack Query
+  const { data: industries = [], isLoading } = useQuery({
+    queryKey: ["industries"],
+    queryFn: fetchIndustries,
+    onError: (err) => {
       console.error("Error fetching industries:", err);
       setError("Failed to load industries. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
 
-  // Load industries on component mount
-  useEffect(() => {
-    fetchIndustries();
-  }, []);
+  // Mutations
+  const addMutation = useMutation({
+    mutationFn: addIndustry,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["industries"] });
+      setFormData({ name: "", industry_type: "" });
+    },
+    onError: (err) => {
+      setError(err.message);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: updateIndustry,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["industries"] });
+      setFormData({ name: "", industry_type: "" });
+      setEditMode(false);
+    },
+    onError: (err) => {
+      setError(err.message);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteIndustry,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["industries"] });
+    },
+    onError: (err) => {
+      setError(err.message);
+    },
+  });
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -43,50 +120,15 @@ export default function IndustriesPage() {
   };
 
   // Add new industry
-  const handleAdd = async (e) => {
+  const handleAdd = (e) => {
     e.preventDefault();
-
-    try {
-      const response = await fetch("/api/industries", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message ||
-            errorData.errors?.join(", ") ||
-            "Failed to add industry"
-        );
-      }
-
-      // Reset form and refresh list
-      setFormData({ name: "", industry_type: "" });
-      fetchIndustries();
-    } catch (err) {
-      setError(err.message);
-    }
+    addMutation.mutate(formData);
   };
 
   // Delete industry
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     if (!confirm("Are you sure you want to delete this industry?")) return;
-
-    try {
-      const response = await fetch("/api/industries", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      });
-
-      if (!response.ok) throw new Error("Failed to delete industry");
-
-      fetchIndustries();
-    } catch (err) {
-      setError(err.message);
-    }
+    deleteMutation.mutate(id);
   };
 
   // Edit industry - populate form
@@ -100,32 +142,9 @@ export default function IndustriesPage() {
   };
 
   // Update industry
-  const handleUpdate = async (e) => {
+  const handleUpdate = (e) => {
     e.preventDefault();
-
-    try {
-      const response = await fetch("/api/industries", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message ||
-            errorData.errors?.join(", ") ||
-            "Failed to update industry"
-        );
-      }
-
-      // Reset form and refresh list
-      setFormData({ name: "", industry_type: "" });
-      setEditMode(false);
-      fetchIndustries();
-    } catch (err) {
-      setError(err.message);
-    }
+    updateMutation.mutate(formData);
   };
 
   // Cancel editing
@@ -162,6 +181,7 @@ export default function IndustriesPage() {
             handleAdd={handleAdd}
             handleUpdate={handleUpdate}
             handleCancel={handleCancel}
+            isSubmitting={addMutation.isPending || updateMutation.isPending}
           />
         </div>
 
@@ -169,9 +189,10 @@ export default function IndustriesPage() {
         <div className='col-md-8'>
           <IndustriesList
             industries={industries}
-            loading={loading}
+            loading={isLoading}
             handleEdit={handleEdit}
             handleDelete={handleDelete}
+            isDeleting={deleteMutation.isPending}
           />
         </div>
       </div>

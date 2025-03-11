@@ -1,15 +1,31 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import BusinessCard from "./components/BusinessCard";
 import FilterSection from "./components/FilterSection";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+} from "@tanstack/react-query";
+import CreateBusiness from "./components/CreateBusinesses";
 
-const Page = () => {
+// Create a client
+const queryClient = new QueryClient();
+
+// Wrap the main component with QueryClientProvider
+export default function BusinessDirectory() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BusinessPage />
+    </QueryClientProvider>
+  );
+}
+
+// Main page component
+const BusinessPage = () => {
   const params = useParams();
   const industry_type = params.industry_type;
-  const [businesses, setBusinesses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({
     business_name: "",
@@ -17,99 +33,81 @@ const Page = () => {
     priceRange: "",
     sortBy: "newest",
   });
+  const [showForm, setShowForm] = useState(false);
 
-  const [pagination, setPagination] = useState({
+  // Query for industries
+  const { data: industries = [] } = useQuery({
+    queryKey: ["industries"],
+    queryFn: async () => {
+      const response = await fetch("/api/industries");
+      if (!response.ok) {
+        throw new Error("Failed to fetch industries");
+      }
+      const data = await response.json();
+      return data.data;
+    },
+  });
+
+  // Query for businesses with dependencies
+  const {
+    data: businessData,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["businesses", industry_type, currentPage, filters, industries],
+    queryFn: async () => {
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: "10",
+      });
+
+      if (filters.business_name)
+        params.append("business_name", filters.business_name);
+      if (filters.location) params.append("location", filters.location);
+      if (filters.priceRange) params.append("priceRange", filters.priceRange);
+      if (filters.sortBy) params.append("sortBy", filters.sortBy);
+
+      // Get industry ID from industry_type slug
+      const selectedIndustry = industries.find(
+        (ind) => ind.name.toLowerCase().replace(/\s+/g, "-") === industry_type
+      );
+
+      // Only add industry_type if it's not "all" and we found a matching industry
+      if (industry_type && industry_type !== "all" && selectedIndustry) {
+        params.append("industry_type", selectedIndustry.id);
+      }
+
+      const url = `/api/business?status=active&${params.toString()}`;
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    },
+    enabled: industries.length > 0, // Only run this query when industries are available
+  });
+
+  const businesses = businessData?.data || [];
+  const pagination = businessData?.pagination || {
     total: 0,
     totalPages: 0,
     page: 1,
     limit: 10,
-  });
-  const [industries, setIndustries] = useState([]); // Add this state
-
-  // Add this new fetch function for industries
-  const fetchIndustries = async () => {
-    try {
-      const response = await fetch("/api/industries");
-      const data = await response.json();
-      setIndustries(data.data);
-    } catch (error) {
-      console.error("Error fetching industries:", error);
-    }
   };
-
-  useEffect(() => {
-    const fetchBusinesses = async () => {
-      try {
-        setLoading(true);
-
-        // First, fetch industries if not already loaded
-        if (industries.length === 0) {
-          await fetchIndustries();
-        }
-
-        const params = new URLSearchParams({
-          page: currentPage.toString(),
-          limit: "10",
-        });
-        console.log(filters);
-
-        if (filters.business_name)
-          params.append("business_name", filters.business_name);
-        if (filters.location) params.append("location", filters.location);
-        if (filters.priceRange) params.append("priceRange", filters.priceRange);
-        if (filters.sortBy) params.append("sortBy", filters.sortBy);
-        // Get industry ID from industry_type slug
-        const selectedIndustry = industries.find(
-          (ind) => ind.name.toLowerCase().replace(/\s+/g, "-") === industry_type
-        );
-
-        // Only add industry_type if it's not "all" and we found a matching industry
-        if (industry_type && industry_type !== "all" && selectedIndustry) {
-          params.append("industry_type", selectedIndustry.id);
-        }
-        console.log(params.toString());
-
-        const url = `/api/business?status=active&${params.toString()}`;
-        const response = await fetch(url);
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.data) {
-          setBusinesses(data.data);
-          setPagination({
-            total: data.pagination.total,
-            totalPages: data.pagination.totalPages,
-            page: data.pagination.page,
-            limit: data.pagination.limit,
-          });
-        } else {
-          throw new Error("Invalid data format received");
-        }
-      } catch (error) {
-        console.error("Error fetching businesses:", error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBusinesses();
-  }, [industry_type, currentPage, industries, filters]);
 
   const handleReset = () => {
     setFilters({
-      search: "",
+      business_name: "",
       location: "",
       priceRange: "",
       sortBy: "newest",
     });
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div
         style={{ marginTop: "100px" }}
@@ -126,7 +124,7 @@ const Page = () => {
     return (
       <div className='container-fluid py-5 text-center'>
         <div className='alert alert-danger' role='alert'>
-          {error}
+          {error.message}
         </div>
       </div>
     );
@@ -134,6 +132,26 @@ const Page = () => {
 
   return (
     <div style={{ marginTop: "120px" }} className='container'>
+      {/* Create Business section */}
+      <div className='row mb-4'>
+        <div className='col-12 text-center'>
+          <button
+            className='btn btn-primary px-4 py-2'
+            onClick={() => setShowForm(!showForm)}
+          >
+            {showForm ? "Hide Create Business" : "Create New Business"}
+          </button>
+        </div>
+      </div>
+      {showForm && (
+        <div className='row'>
+          <div className='col-12 col-lg-6 mx-auto'>
+            <div className='card shadow-lg border-0 p-4'>
+              <CreateBusiness />
+            </div>
+          </div>
+        </div>
+      )}
       <div>
         <h1
           style={{
@@ -290,5 +308,3 @@ const Page = () => {
     </div>
   );
 };
-
-export default Page;

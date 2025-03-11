@@ -1,14 +1,12 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import EditBusinessModal from "./EditBusinessModal";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function BusinessList() {
+  const queryClient = useQueryClient();
   const [openDropdown, setOpenDropdown] = useState(null);
-  const [businesses, setBusinesses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [deleteLoading, setDeleteLoading] = useState(null);
-  const [statusLoading, setStatusLoading] = useState(null);
   const [editingBusiness, setEditingBusiness] = useState(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [filters, setFilters] = useState({
@@ -19,48 +17,49 @@ export default function BusinessList() {
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
-    total: 0,
-    totalPages: 0,
   });
 
-  const fetchBusinesses = useCallback(async () => {
-    try {
-      setLoading(true);
-      const queryParams = new URLSearchParams({
-        page: pagination.page,
-        limit: pagination.limit,
-        ...(filters.business_name && { business_name: filters.business_name }),
-        ...(filters.category && { category: filters.category }),
-        ...(filters.status && { status: filters.status }),
-      });
+  // Fetch businesses with React Query
+  const fetchBusinesses = async () => {
+    const queryParams = new URLSearchParams({
+      page: pagination.page.toString(),
+      limit: pagination.limit.toString(),
+      ...(filters.business_name && { business_name: filters.business_name }),
+      ...(filters.category && { category: filters.category }),
+      ...(filters.status && { status: filters.status }),
+    });
 
-      const response = await fetch(`/api/business?${queryParams}`);
-      const data = await response.json();
+    const response = await fetch(`/api/business?${queryParams}`);
+    const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch businesses");
-      }
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to fetch businesses");
+    }
 
-      setBusinesses(data.data);
+    return data;
+  };
+
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["businesses", pagination.page, pagination.limit, filters],
+    queryFn: fetchBusinesses,
+    keepPreviousData: true,
+    staleTime: 60000, // 1 minute before refetching
+  });
+
+  // Update pagination total from query results
+  useEffect(() => {
+    if (data?.pagination) {
       setPagination((prev) => ({
         ...prev,
         total: data.pagination.total,
         totalPages: data.pagination.totalPages,
       }));
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
     }
-  }, [pagination.page, pagination.limit, filters]);
+  }, [data]);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this business?")) {
-      return;
-    }
-
-    try {
-      setDeleteLoading(id);
+  // Delete business mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
       const response = await fetch("/api/business", {
         method: "DELETE",
         headers: {
@@ -75,24 +74,26 @@ export default function BusinessList() {
         throw new Error(data.message || "Failed to delete business");
       }
 
+      return data;
+    },
+    onSuccess: () => {
       toast.success("Business deleted successfully");
-      fetchBusinesses();
-    } catch (error) {
+      queryClient.invalidateQueries(["businesses"]);
+    },
+    onError: (error) => {
       toast.error(error.message);
-    } finally {
-      setDeleteLoading(null);
-    }
-  };
+    },
+  });
 
-  const handleStatusUpdate = async (id, newStatus) => {
-    try {
-      setStatusLoading(id);
+  // Update status mutation
+  const statusMutation = useMutation({
+    mutationFn: async ({ id, status }) => {
       const response = await fetch("/api/business", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id, status: newStatus }),
+        body: JSON.stringify({ id, status }),
       });
 
       const data = await response.json();
@@ -101,14 +102,56 @@ export default function BusinessList() {
         throw new Error(data.message || "Failed to update status");
       }
 
+      return data;
+    },
+    onSuccess: () => {
       setOpenDropdown(null); // Close dropdown
       toast.success("Status updated successfully");
-      fetchBusinesses();
-    } catch (error) {
+      queryClient.invalidateQueries(["businesses"]);
+    },
+    onError: (error) => {
       toast.error(error.message);
-    } finally {
-      setStatusLoading(null);
+    },
+  });
+
+  // Edit business mutation
+  const editMutation = useMutation({
+    mutationFn: async (updatedBusiness) => {
+      const response = await fetch("/api/business", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedBusiness),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update business");
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Business updated successfully");
+      setEditModalOpen(false);
+      queryClient.invalidateQueries(["businesses"]);
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this business?")) {
+      return;
     }
+    deleteMutation.mutate(id);
+  };
+
+  const handleStatusUpdate = async (id, newStatus) => {
+    statusMutation.mutate({ id, newStatus });
   };
 
   const handleFilter = (e) => {
@@ -120,10 +163,6 @@ export default function BusinessList() {
   const handlePageChange = (newPage) => {
     setPagination((prev) => ({ ...prev, page: newPage }));
   };
-
-  useEffect(() => {
-    fetchBusinesses();
-  }, [fetchBusinesses]);
 
   // Handle clicking outside of dropdown
   useEffect(() => {
@@ -137,38 +176,14 @@ export default function BusinessList() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  //edit functionality
   const handleEditClick = (business) => {
     setEditingBusiness(business);
     setEditModalOpen(true);
   };
 
-  const handleEditSubmit = async (e) => {
+  const handleEditSubmit = (e) => {
     e.preventDefault();
-    try {
-      setLoading(true);
-      const response = await fetch("/api/business", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(editingBusiness),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to update business");
-      }
-
-      toast.success("Business updated successfully");
-      setEditModalOpen(false);
-      fetchBusinesses();
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
+    editMutation.mutate(editingBusiness);
   };
 
   const handleEditChange = (e) => {
@@ -204,6 +219,12 @@ export default function BusinessList() {
     reader.readAsDataURL(file);
   };
 
+  if (isError) {
+    toast.error(error.message);
+  }
+
+  const businesses = data?.data || [];
+
   return (
     <div className='container py-4'>
       <div className='card shadow-sm mb-4'>
@@ -238,7 +259,7 @@ export default function BusinessList() {
       {/* Business List */}
       <div className='card shadow-sm'>
         <div className='card-body'>
-          {loading ? (
+          {isLoading ? (
             <div className='text-center py-5'>
               <div className='spinner-border text-primary'></div>
             </div>
@@ -294,7 +315,7 @@ export default function BusinessList() {
                             Change Status
                           </button>
 
-                          {/* Status Dropdown - Fixed for Small Screens */}
+                          {/* Status Dropdown */}
                           {openDropdown === business.id && (
                             <div
                               className='status-dropdown position-absolute bg-white shadow-sm p-2 rounded w-100'
@@ -312,6 +333,7 @@ export default function BusinessList() {
                                     onClick={() =>
                                       handleStatusUpdate(business.id, status)
                                     }
+                                    disabled={statusMutation.isLoading}
                                   >
                                     {status.charAt(0).toUpperCase() +
                                       status.slice(1)}
@@ -322,16 +344,20 @@ export default function BusinessList() {
                           )}
 
                           <button
-                            className='btn btn-sm btn-danger ms-2'
-                            onClick={() => handleDelete(business.id)}
-                          >
-                            Delete
-                          </button>
-                          <button
-                            className='btn btn-sm btn-primary me-2'
+                            className='btn btn-sm btn-primary ms-2'
                             onClick={() => handleEditClick(business)}
                           >
                             Edit
+                          </button>
+                          <button
+                            className='btn btn-sm btn-danger ms-2'
+                            onClick={() => handleDelete(business.id)}
+                            disabled={deleteMutation.isLoading}
+                          >
+                            {deleteMutation.isLoading &&
+                            deleteMutation.variables === business.id
+                              ? "Deleting..."
+                              : "Delete"}
                           </button>
                         </td>
                       </tr>
@@ -342,7 +368,7 @@ export default function BusinessList() {
             </>
           )}
 
-          {/* Pagination - Now Responsive */}
+          {/* Pagination */}
           {pagination.totalPages > 1 && (
             <nav className='mt-4'>
               <ul className='pagination d-flex flex-wrap justify-content-center overflow-x-auto'>
@@ -354,6 +380,7 @@ export default function BusinessList() {
                   <button
                     className='page-link'
                     onClick={() => handlePageChange(pagination.page - 1)}
+                    disabled={isLoading}
                   >
                     Previous
                   </button>
@@ -370,6 +397,7 @@ export default function BusinessList() {
                       <button
                         className='page-link'
                         onClick={() => handlePageChange(index + 1)}
+                        disabled={isLoading}
                       >
                         {index + 1}
                       </button>
@@ -385,6 +413,7 @@ export default function BusinessList() {
                   <button
                     className='page-link'
                     onClick={() => handlePageChange(pagination.page + 1)}
+                    disabled={isLoading}
                   >
                     Next
                   </button>
@@ -401,7 +430,7 @@ export default function BusinessList() {
           handleEditSubmit={handleEditSubmit}
           handleEditChange={handleEditChange}
           handleImageChange={handleImageChange}
-          loading={loading}
+          loading={editMutation.isLoading}
           setEditModalOpen={setEditModalOpen}
         />
       )}
