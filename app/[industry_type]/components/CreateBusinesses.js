@@ -388,7 +388,7 @@ export default function CreateBusiness() {
                           </div>
                         )}
                       </div>
-                      <div className='col-md-6'>
+                      {/* <div className='col-md-6'>
                         <label className='form-label'>
                           Status <span className='text-danger'>*</span>
                         </label>
@@ -402,7 +402,7 @@ export default function CreateBusiness() {
                         <small className='text-muted'>
                           Business status is set to pending by default
                         </small>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 </div>

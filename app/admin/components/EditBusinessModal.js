@@ -298,15 +298,6 @@ export default function EditBusinessModal({
                             Min Price
                           </label>
                           <div className='input-group'>
-                            <span className='input-group-text'>
-                              <Image
-                                src={"/dirham.png"}
-                                alt='dirham'
-                                width={30}
-                                height={20}
-                                className='me-2'
-                              />
-                            </span>
                             <input
                               type='number'
                               className='form-control'
@@ -321,16 +312,6 @@ export default function EditBusinessModal({
                             Max Price
                           </label>
                           <div className='input-group'>
-                            <span className='input-group-text'>
-                              {" "}
-                              <Image
-                                src={"/dirham.png"}
-                                alt='dirham'
-                                width={30}
-                                height={20}
-                                className='me-2'
-                              />
-                            </span>
                             <input
                               type='number'
                               className='form-control'

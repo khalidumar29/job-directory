@@ -5,24 +5,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import "bootstrap/dist/css/bootstrap.min.css";
 import IndustryForm from "./IndustryForm";
 import IndustriesList from "./IndustriesList";
-import IndustriesList from "./IndustriesList";
-
-// API functions
-const fetchIndustries = async () => {
-  const response = await fetch("/api/industries");
-  if (!response.ok) throw new Error("Failed to fetch industries");
-  const result = await response.json();
-  return result.data || [];
-};
-
-const addIndustry = async (formData) => {
-  const response = await fetch("/api/industries", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(formData),
-  });
-import IndustriesList from "./IndustriesList";
-import IndustriesList from "./IndustriesList";
 
 // API functions
 const fetchIndustries = async () => {

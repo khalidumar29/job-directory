@@ -87,16 +87,7 @@ const FilterSection = ({ filters, setFilters, handleReset, handleFilter }) => {
                   value={formValues.minPrice}
                   onChange={handleInputChange}
                 />
-                <label htmlFor='minPrice'>
-                  <Image
-                    src={"/dirham.png"}
-                    alt='dirham'
-                    width={40}
-                    height={30}
-                    className='me-2'
-                  />
-                  Min Price
-                </label>
+                <label htmlFor='minPrice'>AED</label>
               </div>
             </div>
 
@@ -111,16 +102,7 @@ const FilterSection = ({ filters, setFilters, handleReset, handleFilter }) => {
                   value={formValues.maxPrice}
                   onChange={handleInputChange}
                 />
-                <label htmlFor='maxPrice'>
-                  <Image
-                    src={"/dirham.png"}
-                    alt='dirham'
-                    width={40}
-                    height={30}
-                    className='me-2'
-                  />
-                  Max Price
-                </label>
+                <label htmlFor='maxPrice'>AED</label>
               </div>
             </div>
 
