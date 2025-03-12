@@ -12,7 +12,7 @@ export default function BusinessList() {
   const [filters, setFilters] = useState({
     business_name: "",
     category: "",
-    status: "",
+    status: "active",
   });
   const [pagination, setPagination] = useState({
     page: 1,
@@ -85,7 +85,7 @@ export default function BusinessList() {
     },
   });
 
-  // Update status mutation - FIXED
+  // Update status mutation
   const statusMutation = useMutation({
     mutationFn: async ({ id, status }) => {
       const response = await fetch("/api/business", {
@@ -150,7 +150,6 @@ export default function BusinessList() {
     deleteMutation.mutate(id);
   };
 
-  // FIXED: Updated status handler to use correct parameter name
   const handleStatusUpdate = async (id, status) => {
     statusMutation.mutate({ id, status });
   };
@@ -248,7 +247,6 @@ export default function BusinessList() {
                 value={filters.status}
                 onChange={handleFilter}
               >
-                <option value=''>All Status</option>
                 <option value='active'>Active</option>
                 <option value='inactive'>Inactive</option>
                 <option value='pending'>Pending</option>
