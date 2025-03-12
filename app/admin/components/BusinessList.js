@@ -12,7 +12,7 @@ export default function BusinessList() {
   const [filters, setFilters] = useState({
     business_name: "",
     category: "",
-    status: "active",
+    status: "",
   });
   const [pagination, setPagination] = useState({
     page: 1,
@@ -57,8 +57,6 @@ export default function BusinessList() {
     }
   }, [data]);
 
-  console.log(data);
-
   // Delete business mutation
   const deleteMutation = useMutation({
     mutationFn: async (id) => {
@@ -87,7 +85,7 @@ export default function BusinessList() {
     },
   });
 
-  // Update status mutation
+  // Update status mutation - FIXED
   const statusMutation = useMutation({
     mutationFn: async ({ id, status }) => {
       const response = await fetch("/api/business", {
@@ -152,8 +150,9 @@ export default function BusinessList() {
     deleteMutation.mutate(id);
   };
 
-  const handleStatusUpdate = async (id, newStatus) => {
-    statusMutation.mutate({ id, newStatus });
+  // FIXED: Updated status handler to use correct parameter name
+  const handleStatusUpdate = async (id, status) => {
+    statusMutation.mutate({ id, status });
   };
 
   const handleFilter = (e) => {
@@ -249,6 +248,7 @@ export default function BusinessList() {
                 value={filters.status}
                 onChange={handleFilter}
               >
+                <option value=''>All Status</option>
                 <option value='active'>Active</option>
                 <option value='inactive'>Inactive</option>
                 <option value='pending'>Pending</option>
@@ -387,7 +387,7 @@ export default function BusinessList() {
                   </button>
                 </li>
 
-                {Array.from({ length: pagination.totalPages - 1 }).map(
+                {Array.from({ length: pagination.totalPages }).map(
                   (_, index) => (
                     <li
                       key={index}
