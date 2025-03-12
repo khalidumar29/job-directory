@@ -30,7 +30,8 @@ const BusinessPage = () => {
   const [filters, setFilters] = useState({
     business_name: "",
     location: "",
-    priceRange: "",
+    minPrice: "",
+    maxPrice: "",
     sortBy: "newest",
   });
   const [showForm, setShowForm] = useState(false);
@@ -65,7 +66,8 @@ const BusinessPage = () => {
       if (filters.business_name)
         params.append("business_name", filters.business_name);
       if (filters.location) params.append("location", filters.location);
-      if (filters.priceRange) params.append("priceRange", filters.priceRange);
+      if (filters.minPrice) params.append("minPrice", filters.minPrice);
+      if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
       if (filters.sortBy) params.append("sortBy", filters.sortBy);
 
       // Get industry ID from industry_type slug
@@ -102,7 +104,8 @@ const BusinessPage = () => {
     setFilters({
       business_name: "",
       location: "",
-      priceRange: "",
+      minPrice: "",
+      maxPrice: "",
       sortBy: "newest",
     });
   };

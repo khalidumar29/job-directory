@@ -3,7 +3,7 @@ import { DollarSign, MapPinIcon, Search, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-const FilterSection = ({ filters, setFilters, handleReset, handleFilter }) => {
+const FilterSection = ({ filters, setFilters, handleReset }) => {
   // Add local state to store form values
   const [formValues, setFormValues] = useState({
     business_name: "",

@@ -97,7 +97,7 @@ const BusinessCard = ({ business }) => {
             </ul>
           </div>
           <span className='price'>
-            AED{business.minPrice} - AED{business.maxPrice}
+            AED {business.minPrice} - AED {business.maxPrice}
           </span>
           <span className='phone-meta'>
             <a
