@@ -1,7 +1,6 @@
 import { pool } from "@/src/lib/db";
 
 // GET: Query businesses based on filters
-
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
@@ -15,7 +14,7 @@ export async function GET(req) {
     const limit = parseInt(searchParams.get("limit")) || 10;
     const offset = (page - 1) * limit;
 
-    let query = "SELECT SQL_CALC_FOUND_ROWS * FROM `businesses` WHERE 1";
+    let query = "SELECT * FROM `businesses` WHERE 1";
     let values = [];
 
     if (businessName) {
@@ -36,12 +35,15 @@ export async function GET(req) {
     }
     query += " AND minPrice >= ? AND maxPrice <= ?";
     values.push(minPrice, maxPrice);
-
-    query += " LIMIT ? OFFSET ?";
+    query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
     values.push(limit, offset);
 
     const [rows] = await pool.query(query, values);
-    const [[{ total }]] = await pool.query("SELECT FOUND_ROWS() AS total");
+
+    const [[{ total }]] = await pool.query(
+      "SELECT COUNT(*) AS total FROM businesses WHERE 1 AND status = ?",
+      [status]
+    );
 
     return Response.json({
       data: rows,
@@ -129,7 +131,7 @@ export async function POST(req) {
     }
 
     const [result] = await pool.query(
-      "INSERT INTO `businesses` (name, mobile_number, review_count, rating, category, address, website, email_id, plus_code, closing_hours, latitude, longitude, instagram_profile, facebook_profile, linkedin_profile, twitter_profile, thumbnail, status, industry_type, minPrice, maxPrice, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO `businesses` (name, mobile_number, review_count, rating, category, address, website, email_id, plus_code, closing_hours, latitude, longitude, instagram_profile, facebook_profile, linkedin_profile, twitter_profile, thumbnail, status, industry_type, minPrice, maxPrice, location, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())",
       [
         name,
         mobile_number,
@@ -147,7 +149,7 @@ export async function POST(req) {
         facebook_profile,
         linkedin_profile,
         twitter_profile,
-        thumbnail, // Stores the base64 string
+        thumbnail,
         status,
         industry_type,
         minPrice,

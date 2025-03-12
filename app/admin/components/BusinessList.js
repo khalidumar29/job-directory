@@ -12,7 +12,7 @@ export default function BusinessList() {
   const [filters, setFilters] = useState({
     business_name: "",
     category: "",
-    status: "",
+    status: "active",
   });
   const [pagination, setPagination] = useState({
     page: 1,
@@ -56,6 +56,8 @@ export default function BusinessList() {
       }));
     }
   }, [data]);
+
+  console.log(data);
 
   // Delete business mutation
   const deleteMutation = useMutation({
@@ -386,7 +388,7 @@ export default function BusinessList() {
                   </button>
                 </li>
 
-                {Array.from({ length: pagination.totalPages }).map(
+                {Array.from({ length: pagination.totalPages - 1 }).map(
                   (_, index) => (
                     <li
                       key={index}
