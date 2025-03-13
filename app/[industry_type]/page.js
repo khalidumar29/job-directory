@@ -81,7 +81,6 @@ const BusinessPage = () => {
     },
     enabled: industries.length > 0, // Only run this query when industries are available
   });
-  console.log(businessData);
 
   const businesses = businessData?.data || [];
   const pagination = businessData?.pagination || {
@@ -245,7 +244,7 @@ const BusinessPage = () => {
                   Previous
                 </button>
               </li>
-              {[...Array(pagination.totalPages - 1)].map((_, i) => (
+              {[...Array(pagination.totalPages)].map((_, i) => (
                 <li key={i + 1}>
                   <button
                     onClick={() => setCurrentPage(i + 1)}

@@ -1,4 +1,12 @@
 import { pool } from "@/src/lib/db";
+import { v2 as cloudinary } from "cloudinary";
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // GET: Query businesses based on filters
 export async function GET(req) {
@@ -63,7 +71,8 @@ export async function GET(req) {
 export async function PATCH(req) {
   try {
     const data = await req.json();
-    const { id, ...fieldsToUpdate } = data;
+    const { id, thumbnail, ...fieldsToUpdate } = data;
+    console.log(data);
 
     if (!id) {
       return Response.json(
@@ -71,7 +80,24 @@ export async function PATCH(req) {
         { status: 400 }
       );
     }
+    if (thumbnail) {
+      try {
+        const uploadResponse = await cloudinary.uploader.upload(thumbnail, {
+          folder: "business_thumbnails",
+          resource_type: "image",
+        });
 
+        fieldsToUpdate.thumbnail = uploadResponse.secure_url;
+      } catch (cloudinaryError) {
+        console.error("Cloudinary Upload Error:", cloudinaryError);
+        return Response.json(
+          { message: "Failed to upload image" },
+          { status: 500 }
+        );
+      }
+    }
+
+    // Prepare query
     const setFields = Object.keys(fieldsToUpdate)
       .map((field) => `${field} = ?`)
       .join(", ");
@@ -97,7 +123,7 @@ export async function PATCH(req) {
 // POST: Add new business
 export async function POST(req) {
   try {
-    const {
+    let {
       name,
       mobile_number,
       review_count,
@@ -114,13 +140,14 @@ export async function POST(req) {
       facebook_profile,
       linkedin_profile,
       twitter_profile,
-      thumbnail, // Base64 string directly stored
+      thumbnail,
       status,
       industry_type,
       minPrice,
       maxPrice,
       location,
     } = await req.json();
+    console.log(location);
 
     if (!name || !category || !status) {
       return Response.json(
@@ -129,8 +156,17 @@ export async function POST(req) {
       );
     }
 
+    if (thumbnail) {
+      const uploadResponse = await cloudinary.uploader.upload(thumbnail, {
+        folder: "business_thumbnails", // Optional: Define a Cloudinary folder
+        resource_type: "image",
+      });
+
+      thumbnail = uploadResponse.secure_url;
+    }
+
     const [result] = await pool.query(
-      "INSERT INTO `businesses` (name, mobile_number, review_count, rating, category, address, website, email_id, plus_code, closing_hours, latitude, longitude, instagram_profile, facebook_profile, linkedin_profile, twitter_profile, thumbnail, status, industry_type, minPrice, maxPrice, location, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())",
+      "INSERT INTO `businesses` (name, mobile_number, review_count, rating, category, address, location, website, email_id, plus_code, closing_hours, latitude, longitude, instagram_profile, facebook_profile, linkedin_profile, twitter_profile, thumbnail, status, industry_type, minPrice, maxPrice, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())",
       [
         name,
         mobile_number,
@@ -138,6 +174,7 @@ export async function POST(req) {
         rating,
         category,
         address,
+        location,
         website,
         email_id,
         plus_code,
@@ -148,12 +185,11 @@ export async function POST(req) {
         facebook_profile,
         linkedin_profile,
         twitter_profile,
-        thumbnail,
+        thumbnail, // Store Cloudinary URL instead of base64
         status,
         industry_type,
         minPrice,
-        maxPrice,
-        location,
+        maxPrice, // 🔥 Ensure maxPrice is included here
       ]
     );
 
@@ -175,15 +211,39 @@ export async function DELETE(req) {
 
     if (!id) {
       return Response.json(
-        {
-          success: false,
-          message: "ID is required",
-        },
+        { success: false, message: "ID is required" },
         { status: 400 }
       );
     }
 
     connection = await pool.getConnection();
+
+    // Fetch the business details to check if it has a Cloudinary thumbnail
+    const [business] = await connection.query(
+      "SELECT thumbnail FROM `businesses` WHERE id = ?",
+      [id]
+    );
+
+    if (business.length === 0) {
+      return Response.json(
+        { success: false, message: "Business not found" },
+        { status: 404 }
+      );
+    }
+
+    const imageUrl = business[0].thumbnail;
+
+    // If there's a Cloudinary image URL, delete it
+    if (imageUrl) {
+      try {
+        const publicId = imageUrl.split("/").pop().split(".")[0]; // Extract public ID
+        await cloudinary.uploader.destroy(`business_thumbnails/${publicId}`);
+      } catch (cloudinaryError) {
+        console.error("Cloudinary Delete Error:", cloudinaryError);
+      }
+    }
+
+    // Delete the business record from the database
     const [result] = await connection.query(
       "DELETE FROM `businesses` WHERE id = ?",
       [id]
@@ -191,10 +251,7 @@ export async function DELETE(req) {
 
     if (result.affectedRows === 0) {
       return Response.json(
-        {
-          success: false,
-          message: "Business not found",
-        },
+        { success: false, message: "Business not found" },
         { status: 404 }
       );
     }
@@ -206,10 +263,7 @@ export async function DELETE(req) {
   } catch (error) {
     console.error("Delete error:", error);
     return Response.json(
-      {
-        success: false,
-        message: error.message || "Internal Server Error",
-      },
+      { success: false, message: error.message || "Internal Server Error" },
       { status: 500 }
     );
   } finally {

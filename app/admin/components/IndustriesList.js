@@ -1,4 +1,3 @@
-
 import React from "react";
 
 const IndustriesList = ({ industries, loading, handleEdit, handleDelete }) => {
@@ -22,9 +21,9 @@ const IndustriesList = ({ industries, loading, handleEdit, handleDelete }) => {
                 </tr>
               </thead>
               <tbody>
-                {industries.map((industry) => (
+                {industries.map((industry, i) => (
                   <tr key={industry.id}>
-                    <td>{industry.id}</td>
+                    <td>{i + 1}</td>
                     <td>{industry.name}</td>
                     <td>{industry.industry_type}</td>
                     <td>

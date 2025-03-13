@@ -127,7 +127,10 @@ export default function EditBusinessModal({
                           >
                             <option value=''>Select Industry Type</option>
                             {industries.map((industry) => (
-                              <option key={industry.id} value={industry.id}>
+                              <option
+                                key={industry.id}
+                                value={industry.industry_type}
+                              >
                                 {industry.industry_type}
                               </option>
                             ))}

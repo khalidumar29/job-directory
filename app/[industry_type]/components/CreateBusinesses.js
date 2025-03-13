@@ -263,7 +263,6 @@ export default function CreateBusiness() {
     }
   };
 
-  // Clean up URLs when component unmounts
   useEffect(() => {
     return () => {
       imagePreview.forEach((url) => URL.revokeObjectURL(url));
