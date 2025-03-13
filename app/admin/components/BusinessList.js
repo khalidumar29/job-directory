@@ -57,8 +57,6 @@ export default function BusinessList() {
     }
   }, [data]);
 
-  console.log(data);
-
   // Delete business mutation
   const deleteMutation = useMutation({
     mutationFn: async (id) => {
@@ -152,8 +150,8 @@ export default function BusinessList() {
     deleteMutation.mutate(id);
   };
 
-  const handleStatusUpdate = async (id, newStatus) => {
-    statusMutation.mutate({ id, newStatus });
+  const handleStatusUpdate = async (id, status) => {
+    statusMutation.mutate({ id, status });
   };
 
   const handleFilter = (e) => {
@@ -387,7 +385,7 @@ export default function BusinessList() {
                   </button>
                 </li>
 
-                {Array.from({ length: pagination.totalPages - 1 }).map(
+                {Array.from({ length: pagination.totalPages }).map(
                   (_, index) => (
                     <li
                       key={index}
