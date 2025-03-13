@@ -62,23 +62,13 @@ const BusinessPage = () => {
         page: currentPage.toString(),
         limit: "10",
       });
-
+      params.append("industry_type", industry_type);
       if (filters.business_name)
         params.append("business_name", filters.business_name);
       if (filters.location) params.append("location", filters.location);
       if (filters.minPrice) params.append("minPrice", filters.minPrice);
       if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
       if (filters.sortBy) params.append("sortBy", filters.sortBy);
-
-      // Get industry ID from industry_type slug
-      const selectedIndustry = industries.find(
-        (ind) => ind.name.toLowerCase().replace(/\s+/g, "-") === industry_type
-      );
-
-      // Only add industry_type if it's not "all" and we found a matching industry
-      if (industry_type && industry_type !== "all" && selectedIndustry) {
-        params.append("industry_type", selectedIndustry.id);
-      }
 
       const url = `/api/business?status=active&${params.toString()}`;
       const response = await fetch(url);
